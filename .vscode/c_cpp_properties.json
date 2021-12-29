@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "juniper",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/kernel/include"
+            ],
+            "defines": [],
+            "compilerPath": "/home/kysmaster/juniper/host/cross-root/bin/aarch64-juniper-gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-arm64"
+        }
+    ],
+    "version": 4
+}

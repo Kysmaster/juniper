@@ -1,0 +1,35 @@
+{
+    "files.associations": {
+		"thread.h": "c",
+		"uart.h": "c",
+		"qemu-virt.h": "c",
+		"interrupts.h": "c",
+		"virtio_gpu.h": "c",
+		"vm.h": "c",
+		"display.h": "c",
+		"gpu.h": "c",
+		"virtio_ring.h": "c",
+		"virtio.h": "c",
+		"virtio_priv.h": "c",
+		"miniheap.h": "c",
+		"tests.h": "c",
+		"err.h": "c",
+		"stdio.h": "c",
+		"console_cmd.h": "c",
+		"bulktest.h": "c",
+		"stdint.h": "c",
+		"types.h": "c",
+		"defines.h": "c",
+		"mmu.h": "c",
+		"compiler.h": "c",
+		"arm64.h": "c",
+		"stdlib.h": "c",
+		"aspace.h": "c",
+		"assert.h": "c",
+		"list.h": "c",
+		"page_alloc.h": "c"
+	},
+    "files.exclude": {
+        "**/host/": true
+    }
+}

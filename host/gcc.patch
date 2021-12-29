@@ -1,0 +1,137 @@
+diff --git a/config.sub b/config.sub
+index 75bb6a313..c77f58097 100755
+--- a/config.sub
++++ b/config.sub
+@@ -134,7 +134,7 @@
+ 			nto-qnx* | linux-* | uclinux-uclibc* \
+ 			| uclinux-gnu* | kfreebsd*-gnu* | knetbsd*-gnu* | netbsd*-gnu* \
+ 			| netbsd*-eabi* | kopensolaris*-gnu* | cloudabi*-eabi* \
+-			| storm-chaos* | os2-emx* | rtmk-nova*)
++			| storm-chaos* | os2-emx* | rtmk-nova* | juniper*)
+ 				basic_machine=$field1
+ 				basic_os=$maybe_os
+ 				;;
+@@ -1695,7 +1695,7 @@
+ 	# Now accept the basic system types.
+ 	# The portable systems comes first.
+ 	# Each alternative MUST end in a * to match a version number.
+-	gnu* | android* | bsd* | mach* | minix* | genix* | ultrix* | irix* \
++	gnu* | juniper* | android* | bsd* | mach* | minix* | genix* | ultrix* | irix* \
+ 	     | *vms* | esix* | aix* | cnk* | sunos | sunos[34]* \
+ 	     | hpux* | unos* | osf* | luna* | dgux* | auroraux* | solaris* \
+ 	     | sym* |  plan9* | psp* | sim* | xray* | os68k* | v88r* \
+diff --git a/fixincludes/mkfixinc.sh b/fixincludes/mkfixinc.sh
+index 0f9648608..c6f4ee2ce 100755
+--- a/fixincludes/mkfixinc.sh
++++ b/fixincludes/mkfixinc.sh
+@@ -12,6 +12,7 @@ target=fixinc.sh
+ # Check for special fix rules for particular targets
+ case $machine in
+     i?86-*-cygwin* | \
++    aarch64*-*-juniper* | \
+     i?86-*-mingw32* | \
+     x86_64-*-mingw32* | \
+     powerpc-*-eabisim* | \
+diff --git a/gcc/config.gcc b/gcc/config.gcc
+index ddd3b8f4d..279dffdb5 100644
+--- a/gcc/config.gcc
++++ b/gcc/config.gcc
+@@ -686,6 +686,12 @@
+ 
+ # Common parts for widely ported systems.
+ case ${target} in
++*-*-juniper*)
++  gas=yes
++  gnu_ld=yes
++  default_use_cxa_atexit=yes
++  use_gcc_stdint=provide
++  ;;
+ *-*-darwin*)
+   tmake_file="t-darwin "
+   tm_file="${tm_file} darwin.h"
+@@ -1084,6 +1090,12 @@
+ esac
+ 
+ case ${target} in
++aarch64*-*-juniper)
++	tm_file="${tm_file} dbxelf.h elfos.h newlib-stdint.h juniper.h"
++	tm_file="${tm_file} aarch64/aarch64-elf.h aarch64/aarch64-errata.h aarch64/aarch64-elf-raw.h"
++	tmake_file="${tmake_file} aarch64/t-aarch64"
++	use_gcc_stdint=provide
++	;;
+ aarch64*-*-elf | aarch64*-*-fuchsia* | aarch64*-*-rtems*)
+ 	tm_file="${tm_file} dbxelf.h elfos.h newlib-stdint.h"
+ 	tm_file="${tm_file} aarch64/aarch64-elf.h aarch64/aarch64-errata.h aarch64/aarch64-elf-raw.h"
+diff --git a/gcc/config/juniper.h b/gcc/config/juniper.h
+new file mode 100644
+index 000000000..204519a3d
+--- /dev/null
++++ b/gcc/config/juniper.h
+@@ -0,0 +1,29 @@
++#undef TARGET_JUNIPER
++#define TARGET_JUNIPER 1
++
++#undef LIB_SPEC
++#define LIB_SPEC "-l:libc.a"
++
++ 
++ 
++
++ 
++ 
++
++
++
++
++
++
++
++
++
++#undef TARGET_OS_CPP_BUILTINS
++#define TARGET_OS_CPP_BUILTINS() \
++	do {                                \
++		builtin_define ("__juniper__");      \
++		builtin_define ("__unix__");      \
++		builtin_assert ("system=juniper");   \
++		builtin_assert ("system=unix");   \
++		builtin_assert ("system=posix");   \
++	} while(0);
+diff --git a/libgcc/config.host b/libgcc/config.host
+index 91abc84da..f741f319d 100644
+--- a/libgcc/config.host
++++ b/libgcc/config.host
+@@ -356,6 +356,14 @@
+ esac
+ 
+ case ${host} in
++aarch64*-*-juniper*)
++	extra_parts="$extra_parts crtbegin.o crtend.o crti.o crtn.o"
++	extra_parts="$extra_parts crtfastmath.o"
++	tmake_file="${tmake_file} ${cpu_type}/t-aarch64"
++	tmake_file="${tmake_file} ${cpu_type}/t-lse t-slibgcc-libgcc"
++	tmake_file="${tmake_file} ${cpu_type}/t-softfp t-softfp t-crtfm" 
++	md_unwind_header=aarch64/aarch64-unwind.h
++	;;
+ aarch64*-*-elf | aarch64*-*-rtems*)
+ 	extra_parts="$extra_parts crtbegin.o crtend.o crti.o crtn.o"
+ 	extra_parts="$extra_parts crtfastmath.o"
+diff --git a/libstdc++-v3/crossconfig.m4 b/libstdc++-v3/crossconfig.m4
+index 344eec09d..e45766b5e 100644
+--- a/libstdc++-v3/crossconfig.m4
++++ b/libstdc++-v3/crossconfig.m4
+@@ -198,6 +198,13 @@
+     AC_CHECK_FUNCS(uselocale)
+     AM_ICONV
+     ;;
++  *-juniper*)
++    GLIBCXX_CHECK_COMPILER_FEATURES
++    GLIBCXX_CHECK_LINKER_FEATURES
++    GLIBCXX_CHECK_MATH_SUPPORT
++    GLIBCXX_CHECK_STDLIB_SUPPORT
++    AC_CHECK_FUNCS(aligned_alloc posix_memalign memalign _aligned_malloc)
++    ;;
+   *-mingw32*)
+     GLIBCXX_CHECK_LINKER_FEATURES
+     GLIBCXX_CHECK_MATH_SUPPORT
+

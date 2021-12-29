@@ -1,0 +1,15 @@
+[binaries]
+c = 'x86_64-juniper-gcc'
+cpp = 'x86_64-juniper-g++'
+ar = 'x86_64-juniper-ar'
+strip = 'x86_64-juniper-strip'
+pkgconfig = 'pkg-config'
+
+[properties]
+root = '@@sysroot@@'
+
+[host_machine]
+system = 'juniper'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'

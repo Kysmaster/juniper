@@ -1,0 +1,5 @@
+host/build-toolchain/binutils-*
+host/build-toolchain/build-binutils/*
+host/build-toolchain/build-gcc/*
+host/build-toolchain/gcc-*
+host/cross-root

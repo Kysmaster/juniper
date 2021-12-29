@@ -1,0 +1,14 @@
+        size 1048576, remaining 1037384
+        free list:
+        bucket 57
+                base 0xffff0000006dd0a8, end 0xffff0000006de560, len 0x14b8
+                base 0xffff0000006da600, end 0xffff0000006dbb20, len 0x1520
+        bucket 118
+                base 0xffff0000006de580, end 0xffff0000007d8ff0, len 0xfaa70
+
+
+
+base 0xffff0000006c8000, len 0x5000
+        free list:
+                base 0xffff0000006c9438, end 0xffff0000006cccd0, len 0x3898
+                base 0xffff0000006cccf0, end 0xffff0000006cd000, len 0x310
