@@ -11,6 +11,9 @@
 #include <string.h>
 #include <sys/types.h>
 #include <platform/debug.h>
+#include <kernel/spinlock.h>
+
+spin_lock_t printf_lock = SPIN_LOCK_INITIAL_VALUE;
 
 #define DEFINE_STDIO_DESC(id)   \
     [(id)]  = {                 \
@@ -92,8 +95,8 @@ int fprintf(FILE *fp, const char *fmt, ...) {
     return err;
 }
 
-#if !DISABLE_DEBUG_OUTPUT
 int printf(const char *fmt, ...) {
+	spin_lock(&printf_lock);
     va_list ap;
     int err;
 
@@ -101,10 +104,10 @@ int printf(const char *fmt, ...) {
     err = vfprintf(stdout, fmt, ap);
     va_end(ap);
 
+	spin_unlock(&printf_lock);
     return err;
 }
 
 int vprintf(const char *fmt, va_list ap) {
     return vfprintf(stdout, fmt, ap);
 }
-#endif // !DISABLE_DEBUG_OUTPUT

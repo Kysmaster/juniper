@@ -18,7 +18,6 @@
 #include <lk/debug.h>
 #include <assert.h>
 #include <lib/io.h>
-#include <lk/init.h>
 #include <lib/gfx.h>
 #include <lib/gfxconsole.h>
 #include <lib/font.h>
@@ -154,8 +153,8 @@ void gfxconsole_start_on_display(void) {
     started = true;
 }
 
-static void gfxconsole_init_hook(uint level) {
+// TODO
+void gfxconsole_init_hook(void) {
     gfxconsole_start_on_display();
 }
 
-LK_INIT_HOOK(gfxconsole, &gfxconsole_init_hook, LK_INIT_LEVEL_PLATFORM);

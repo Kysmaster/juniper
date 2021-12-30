@@ -15,7 +15,7 @@
 #include <platform/timer.h>
 #include <lk/trace.h>
 
-#define LOCAL_TRACE 0
+#define LOCAL_TRACE 1
 
 #include <lib/fixed_point.h>
 
@@ -272,10 +272,7 @@ static void arm_generic_timer_init_secondary_cpu(uint level) {
     unmask_interrupt(timer_irq);
 }
 
-/* secondary cpu initialize the timer just before the kernel starts with interrupts enabled */
-LK_INIT_HOOK_FLAGS(arm_generic_timer_init_secondary_cpu,
-                   arm_generic_timer_init_secondary_cpu,
-                   LK_INIT_LEVEL_THREADING - 1, LK_INIT_FLAG_SECONDARY_CPUS);
+
 
 static void arm_generic_timer_resume_cpu(uint level) {
     /* Always trigger a timer interrupt on each cpu for now */
@@ -283,5 +280,4 @@ static void arm_generic_timer_resume_cpu(uint level) {
     write_cntp_ctl(1);
 }
 
-LK_INIT_HOOK_FLAGS(arm_generic_timer_resume_cpu, arm_generic_timer_resume_cpu,
-                   LK_INIT_LEVEL_PLATFORM, LK_INIT_FLAG_CPU_RESUME);
+

@@ -349,7 +349,7 @@ arm_reset:
     cbnz    tmp2, .L__bss_loop
 .L__bss_loop_done:
 
-    bl  lk_main
+    bl  kern_main
     b   .
 
 .Lsecondary_boot:

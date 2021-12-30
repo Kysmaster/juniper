@@ -29,6 +29,8 @@
 /* saved boot arguments from whoever loaded the system */
 ulong lk_boot_args[4];
 
+volatile int node_boot_lock = 0;
+
 extern void *__ctor_list;
 extern void *__ctor_end;
 extern int __bss_start;
@@ -54,8 +56,7 @@ static void call_constructors(void) {
 }
 
 /* called from arch code */
-void lk_main(ulong arg0, ulong arg1, ulong arg2, ulong arg3) {
-    // save the boot args
+void kern_main(ulong arg0, ulong arg1, ulong arg2, ulong arg3) {
     lk_boot_args[0] = arg0;
     lk_boot_args[1] = arg1;
     lk_boot_args[2] = arg2;
@@ -65,16 +66,10 @@ void lk_main(ulong arg0, ulong arg1, ulong arg2, ulong arg3) {
     thread_init_early();
 
     // early arch stuff
-    lk_primary_cpu_init_level(LK_INIT_LEVEL_EARLIEST, LK_INIT_LEVEL_ARCH_EARLY - 1);
     arch_early_init();
 
     // do any super early platform initialization
-    lk_primary_cpu_init_level(LK_INIT_LEVEL_ARCH_EARLY, LK_INIT_LEVEL_PLATFORM_EARLY - 1);
     platform_early_init();
-
-    // do any super early target initialization
-    lk_primary_cpu_init_level(LK_INIT_LEVEL_PLATFORM_EARLY, LK_INIT_LEVEL_TARGET_EARLY - 1);
-    target_early_init();
 
     dprintf(INFO, "\nwelcome to lk/MP\n\n");
 
@@ -82,19 +77,21 @@ void lk_main(ulong arg0, ulong arg1, ulong arg2, ulong arg3) {
             lk_boot_args[0], lk_boot_args[1], lk_boot_args[2], lk_boot_args[3]);
 
     // bring up the kernel heap
-    lk_primary_cpu_init_level(LK_INIT_LEVEL_TARGET_EARLY, LK_INIT_LEVEL_HEAP - 1);
+
+	void vm_init_preheap();
+	vm_init_preheap();
     dprintf(SPEW, "initializing heap\n");
     heap_init();
+	void vm_init_postheap();
+	vm_init_postheap();
 
     // deal with any static constructors
     dprintf(SPEW, "calling constructors\n");
-    call_constructors();
+    //call_constructors();
 
     // initialize the kernel
-    lk_primary_cpu_init_level(LK_INIT_LEVEL_HEAP, LK_INIT_LEVEL_KERNEL - 1);
     kernel_init();
 
-    lk_primary_cpu_init_level(LK_INIT_LEVEL_KERNEL, LK_INIT_LEVEL_THREADING - 1);
 
     // create a thread to complete system initialization
     dprintf(SPEW, "creating bootstrap completion thread\n");
@@ -110,27 +107,15 @@ void lk_main(ulong arg0, ulong arg1, ulong arg2, ulong arg3) {
 static int bootstrap2(void *arg) {
     dprintf(SPEW, "top of bootstrap2()\n");
 
-    lk_primary_cpu_init_level(LK_INIT_LEVEL_THREADING, LK_INIT_LEVEL_ARCH - 1);
+	dprintf(SPEW, "initializing arch\n");
     arch_init();
 
-    // initialize the rest of the platform
     dprintf(SPEW, "initializing platform\n");
-    lk_primary_cpu_init_level(LK_INIT_LEVEL_ARCH, LK_INIT_LEVEL_PLATFORM - 1);
     platform_init();
 
-    // initialize the target
-    dprintf(SPEW, "initializing target\n");
-    lk_primary_cpu_init_level(LK_INIT_LEVEL_PLATFORM, LK_INIT_LEVEL_TARGET - 1);
-    target_init();
+	printf("OK!\n");
 
-    dprintf(SPEW, "initializing apps\n");
-    lk_primary_cpu_init_level(LK_INIT_LEVEL_TARGET, LK_INIT_LEVEL_APPS - 1);
-    //apps_init();
-
-	void miniheap_dump(void);
-	miniheap_dump();
-
-    lk_primary_cpu_init_level(LK_INIT_LEVEL_APPS, LK_INIT_LEVEL_LAST);
+	node_boot_lock = 1;
 
     return 0;
 }
@@ -153,7 +138,6 @@ void lk_secondary_cpu_entry(void) {
 
 static int secondary_cpu_bootstrap2(void *arg) {
     /* secondary cpu initialize from threading level up. 0 to threading was handled in arch */
-    lk_init_level(LK_INIT_FLAG_SECONDARY_CPUS, LK_INIT_LEVEL_THREADING, LK_INIT_LEVEL_LAST);
 
     return 0;
 }

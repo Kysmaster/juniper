@@ -12,7 +12,6 @@
 
 #include <dev/uart.h>
 #include <arch.h>
-#include <lk/init.h>
 #include <kernel/vm.h>
 #include <kernel/spinlock.h>
 #include <dev/timer/arm_generic.h>
@@ -129,6 +128,8 @@ void platform_early_init(void) {
 void platform_init(void) {
     uart_init();
     init_framebuffer();
+	void gfxconsole_init_hook(void);
+	gfxconsole_init_hook();
 }
 
 void platform_dputc(char c) {

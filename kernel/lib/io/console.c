@@ -18,7 +18,6 @@
 #include <platform.h>
 #include <platform/debug.h>
 #include <kernel/thread.h>
-#include <lk/init.h>
 
 /* routines for dealing with main console io */
 
@@ -109,7 +108,6 @@ static void console_init_hook(uint level) {
     cbuf_initialize_etc(&console_input_cbuf, sizeof(console_cbuf_buf), console_cbuf_buf);
 }
 
-LK_INIT_HOOK(console, console_init_hook, LK_INIT_LEVEL_PLATFORM_EARLY - 1);
 #endif
 
 /* global console io handle */

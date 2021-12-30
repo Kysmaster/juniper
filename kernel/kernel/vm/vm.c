@@ -6,7 +6,6 @@
  * https://opensource.org/licenses/MIT
  */
 #include <kernel/vm.h>
-
 #include <arch/mmu.h>
 #include <kernel/thread.h>
 #include <lk/console_cmd.h>
@@ -53,7 +52,7 @@ static void mark_pages_in_use(vaddr_t va, size_t len) {
     }
 }
 
-static void vm_init_preheap(uint level) {
+void vm_init_preheap(void) {
     LTRACE_ENTRY;
 
     /* allow the vmm a shot at initializing some of its data structures */
@@ -71,7 +70,7 @@ static void vm_init_preheap(uint level) {
     }
 }
 
-static void vm_init_postheap(uint level) {
+void vm_init_postheap(void) {
     LTRACE_ENTRY;
 
     vmm_init();
@@ -198,6 +197,3 @@ STATIC_COMMAND_START
 STATIC_COMMAND("vm", "vm commands", &cmd_vm)
 #endif
 STATIC_COMMAND_END(vm);
-
-LK_INIT_HOOK(vm_preheap, &vm_init_preheap, LK_INIT_LEVEL_HEAP - 1);
-LK_INIT_HOOK(vm, &vm_init_postheap, LK_INIT_LEVEL_VM - 1);

@@ -19,7 +19,9 @@
 #include <platform.h>
 #include <lk/trace.h>
 
-#define LOCAL_TRACE 0
+#define LOCAL_TRACE 1
+
+extern volatile int node_boot_lock;
 
 /* smp boot lock */
 static spin_lock_t arm_boot_cpu_lock = 1;
@@ -132,8 +134,11 @@ void arch_enter_uspace(vaddr_t entry_point, vaddr_t user_stack_top) {
 }
 
 /* called from assembly */
-void arm64_secondary_entry(ulong);
 void arm64_secondary_entry(ulong asm_cpu_num) {
+	LTRACEF("Locking cpu %d\n", asm_cpu_num);
+	while(!node_boot_lock);
+	LTRACEF("Unlocking cpu %d\n", asm_cpu_num);
+
     uint cpu = arch_curr_cpu_num();
     if (cpu != asm_cpu_num)
         return;
@@ -144,15 +149,14 @@ void arm64_secondary_entry(ulong asm_cpu_num) {
     spin_unlock(&arm_boot_cpu_lock);
 
     /* run early secondary cpu init routines up to the threading level */
-    lk_init_level(LK_INIT_FLAG_SECONDARY_CPUS, LK_INIT_LEVEL_EARLIEST, LK_INIT_LEVEL_THREADING - 1);
 
     arch_mp_init_percpu();
 
     LTRACEF("cpu num %d\n", cpu);
 
     /* we're done, tell the main cpu we're up */
-    atomic_add(&secondaries_to_init, -1);
-    __asm__ volatile("sev");
+    //atomic_add(&secondaries_to_init, -1);
+    //__asm__ volatile("sev");
 
     lk_secondary_cpu_entry();
 }
