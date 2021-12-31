@@ -1,10 +1,4 @@
-/*
- * Copyright (c) 2013 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
+#include <kernel/kernel_struct.h>
 #include <lk/debug.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -13,7 +7,6 @@
 #include <platform/debug.h>
 #include <kernel/spinlock.h>
 
-spin_lock_t printf_lock = SPIN_LOCK_INITIAL_VALUE;
 size_t platform_write(const char *str, size_t len);
 FILE __stdio_FILEs[3] = {
     &console_io, /* stdin */
@@ -92,7 +85,7 @@ int fprintf(FILE *fp, const char *fmt, ...) {
 }
 
 int printf(const char *fmt, ...) {
-	spin_lock(&printf_lock);
+	spin_lock(&kernel_struct.printf_lock);
     va_list ap;
     int err;
 
@@ -100,7 +93,7 @@ int printf(const char *fmt, ...) {
     err = vfprintf(stdout, fmt, ap);
     va_end(ap);
 
-	spin_unlock(&printf_lock);
+	spin_unlock(&kernel_struct.printf_lock);
     return err;
 }
 

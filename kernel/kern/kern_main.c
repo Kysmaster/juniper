@@ -11,8 +11,7 @@
  * the default thread.
  */
 #include <lk/main.h>
-
-//#include <app.h>
+#include <kernel/kernel_struct.h>
 #include <arch.h>
 #include <kernel/init.h>
 #include <kernel/mutex.h>
@@ -26,10 +25,10 @@
 #include <string.h>
 #include <target.h>
 
-/* saved boot arguments from whoever loaded the system */
-ulong lk_boot_args[4];
-
-volatile int node_boot_lock = 0;
+struct kernel_struct kernel_struct = {
+	.printf_lock = SPIN_LOCK_INITIAL_VALUE,
+	.node_boot_locked = 1,
+};
 
 extern void *__ctor_list;
 extern void *__ctor_end;
@@ -56,11 +55,11 @@ static void call_constructors(void) {
 }
 
 /* called from arch code */
-void kern_main(ulong arg0, ulong arg1, ulong arg2, ulong arg3) {
-    lk_boot_args[0] = arg0;
-    lk_boot_args[1] = arg1;
-    lk_boot_args[2] = arg2;
-    lk_boot_args[3] = arg3;
+void kern_main(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3) {
+	kernel_struct.boot_args[0] = arg0;
+	kernel_struct.boot_args[1] = arg1;
+	kernel_struct.boot_args[2] = arg2;
+	kernel_struct.boot_args[3] = arg3;
 
     // get us into some sort of thread context
     thread_init_early();
@@ -74,7 +73,8 @@ void kern_main(ulong arg0, ulong arg1, ulong arg2, ulong arg3) {
     printf("\nwelcome to lk/MP\n\n");
 
     dprintf(INFO, "boot args 0x%lx 0x%lx 0x%lx 0x%lx\n",
-            lk_boot_args[0], lk_boot_args[1], lk_boot_args[2], lk_boot_args[3]);
+            kernel_struct.boot_args[0], kernel_struct.boot_args[1], 
+			kernel_struct.boot_args[2], kernel_struct.boot_args[3]);
 
     // bring up the kernel heap
 	void vm_init_preheap();
@@ -101,9 +101,6 @@ void kern_main(ulong arg0, ulong arg1, ulong arg2, ulong arg3) {
     thread_detach(t);
     thread_resume(t);
 	
-	node_boot_lock = 1;
-
-
     // become the idle thread and enable interrupts to start the scheduler
     thread_become_idle();
 }

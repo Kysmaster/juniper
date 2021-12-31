@@ -162,6 +162,7 @@ size_t uart_write(io_handle_t *io, const char *str, size_t len) {
 }
 
 size_t uart_read(io_handle_t *io, const char *s, size_t len) {
+	// TODO: implement
 	return 0;
 }
 

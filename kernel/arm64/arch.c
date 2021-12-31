@@ -1,10 +1,4 @@
-/*
- * Copyright (c) 2014-2016 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
+#include <kernel/kernel_struct.h>
 #include <lk/debug.h>
 #include <stdlib.h>
 #include <arch.h>
@@ -17,8 +11,6 @@
 #include <lk/init.h>
 #include <lk/main.h>
 #include <platform.h>
-
-extern volatile int node_boot_lock;
 
 /* smp boot lock */
 static spin_lock_t arm_boot_cpu_lock = 1;
@@ -133,7 +125,7 @@ void arch_enter_uspace(vaddr_t entry_point, vaddr_t user_stack_top) {
 /* called from assembly */
 void arm64_secondary_entry(ulong asm_cpu_num) {
 	dprintf(INFO, "Locking cpu %d\n", asm_cpu_num);
-	while(!node_boot_lock);
+	while(kernel_struct.node_boot_locked);
 	dprintf(INFO, "Unlocking cpu %d\n", asm_cpu_num);
 
     uint cpu = arch_curr_cpu_num();
