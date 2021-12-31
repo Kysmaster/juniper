@@ -14,17 +14,13 @@
 #include <kernel/spinlock.h>
 
 spin_lock_t printf_lock = SPIN_LOCK_INITIAL_VALUE;
-
-#define DEFINE_STDIO_DESC(id)   \
-    [(id)]  = {                 \
-        .io = &console_io,      \
-    }
-
+size_t platform_write(const char *str, size_t len);
 FILE __stdio_FILEs[3] = {
-    DEFINE_STDIO_DESC(0), /* stdin */
-    DEFINE_STDIO_DESC(1), /* stdout */
-    DEFINE_STDIO_DESC(2), /* stderr */
+    &console_io, /* stdin */
+    &console_io, /* stdout */
+    &console_io, /* stderr */
 };
+
 #undef DEFINE_STDIO_DESC
 
 int fputc(int _c, FILE *fp) {

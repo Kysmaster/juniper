@@ -17,9 +17,6 @@
 #include <lk/init.h>
 #include <lk/main.h>
 #include <platform.h>
-#include <lk/trace.h>
-
-#define LOCAL_TRACE 1
 
 extern volatile int node_boot_lock;
 
@@ -73,13 +70,13 @@ void arch_stacktrace(uint64_t fp, uint64_t pc)
 void arch_init(void) {
     arch_mp_init_percpu();
 
-    LTRACEF("midr_el1 0x%llx\n", ARM64_READ_SYSREG(midr_el1));
+    dprintf(INFO, "midr_el1 0x%llx\n", ARM64_READ_SYSREG(midr_el1));
 
     secondaries_to_init = SMP_MAX_CPUS - 1; /* TODO: get count from somewhere else, or add cpus as they boot */
 
     lk_init_secondary_cpus(secondaries_to_init);
 
-    LTRACEF("releasing %d secondary cpus\n", secondaries_to_init);
+    dprintf(INFO, "releasing %d secondary cpus\n", secondaries_to_init);
 
     /* release the secondary cpus */
     spin_unlock(&arm_boot_cpu_lock);
@@ -135,9 +132,9 @@ void arch_enter_uspace(vaddr_t entry_point, vaddr_t user_stack_top) {
 
 /* called from assembly */
 void arm64_secondary_entry(ulong asm_cpu_num) {
-	LTRACEF("Locking cpu %d\n", asm_cpu_num);
+	dprintf(INFO, "Locking cpu %d\n", asm_cpu_num);
 	while(!node_boot_lock);
-	LTRACEF("Unlocking cpu %d\n", asm_cpu_num);
+	dprintf(INFO, "Unlocking cpu %d\n", asm_cpu_num);
 
     uint cpu = arch_curr_cpu_num();
     if (cpu != asm_cpu_num)
@@ -152,11 +149,7 @@ void arm64_secondary_entry(ulong asm_cpu_num) {
 
     arch_mp_init_percpu();
 
-    LTRACEF("cpu num %d\n", cpu);
-
-    /* we're done, tell the main cpu we're up */
-    //atomic_add(&secondaries_to_init, -1);
-    //__asm__ volatile("sev");
+    dprintf(INFO, "cpu num %d\n", cpu);
 
     lk_secondary_cpu_entry();
 }

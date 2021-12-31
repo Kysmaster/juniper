@@ -146,3 +146,10 @@ int platform_dgetc(char *c, bool wait) {
     return 0;
 }
 
+size_t platform_write(const char *str, size_t len) {
+	/* write out the serial port */
+    for (size_t i = 0; i < len; i++) {
+        platform_dputc(str[i]);
+    }
+	return len;
+}

@@ -22,14 +22,17 @@ LDFLAGS   = -T link.ld -z max-page-size=4096 -nostdlib -nostartfiles -lgcc -mno-
 
 all: $(KERNELELF)
 
-$(KERNELELF): $(BINS) $(OBJ)
-	$(CC) $(LDFLAGS) $(OBJ) -o $@
+$(KERNELELF): $(OBJ) font_sfn.o
+	$(CC) $(LDFLAGS) $(OBJ) font_sfn.o -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 %.o: %.S
 	$(CC) $< $(ASFLAGS)  -c -o $@
+
+font_sfn.o: font.sfn
+	aarch64-juniper-ld -r -b binary -o font_sfn.o font.sfn
 
 clean:
 	rm -f $(OBJ) $(BINS) $(KERNELELF) $(KERNELHDD)

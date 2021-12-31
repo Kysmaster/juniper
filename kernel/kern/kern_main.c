@@ -71,22 +71,23 @@ void kern_main(ulong arg0, ulong arg1, ulong arg2, ulong arg3) {
     // do any super early platform initialization
     platform_early_init();
 
-    dprintf(INFO, "\nwelcome to lk/MP\n\n");
+    printf("\nwelcome to lk/MP\n\n");
 
     dprintf(INFO, "boot args 0x%lx 0x%lx 0x%lx 0x%lx\n",
             lk_boot_args[0], lk_boot_args[1], lk_boot_args[2], lk_boot_args[3]);
 
     // bring up the kernel heap
-
 	void vm_init_preheap();
 	vm_init_preheap();
-    dprintf(SPEW, "initializing heap\n");
+    dprintf(INFO, "initializing heap\n");
     heap_init();
 	void vm_init_postheap();
 	vm_init_postheap();
 
+	
+
     // deal with any static constructors
-    dprintf(SPEW, "calling constructors\n");
+    dprintf(1, "calling constructors\n");
     //call_constructors();
 
     // initialize the kernel
@@ -94,28 +95,32 @@ void kern_main(ulong arg0, ulong arg1, ulong arg2, ulong arg3) {
 
 
     // create a thread to complete system initialization
-    dprintf(SPEW, "creating bootstrap completion thread\n");
+    dprintf(INFO, "creating bootstrap completion thread\n");
     thread_t *t = thread_create("bootstrap2", &bootstrap2, NULL, DEFAULT_PRIORITY, DEFAULT_STACK_SIZE);
     thread_set_pinned_cpu(t, 0);
     thread_detach(t);
     thread_resume(t);
+	
+	node_boot_lock = 1;
+
 
     // become the idle thread and enable interrupts to start the scheduler
     thread_become_idle();
 }
 
 static int bootstrap2(void *arg) {
-    dprintf(SPEW, "top of bootstrap2()\n");
+    dprintf(INFO, "top of bootstrap2()\n");
 
-	dprintf(SPEW, "initializing arch\n");
+	dprintf(INFO, "initializing arch\n");
     arch_init();
 
-    dprintf(SPEW, "initializing platform\n");
+    dprintf(INFO, "initializing platform\n");
     platform_init();
 
+	thread_sleep(200);
 	printf("OK!\n");
-
-	node_boot_lock = 1;
+	printf("Second line!\n");
+	dprintf(INFO, "dprintf() test\n");
 
     return 0;
 }
@@ -124,7 +129,7 @@ void lk_secondary_cpu_entry(void) {
     uint cpu = arch_curr_cpu_num();
 
     if (cpu > secondary_bootstrap_thread_count) {
-        dprintf(CRITICAL, "Invalid secondary cpu num %d, SMP_MAX_CPUS %d, secondary_bootstrap_thread_count %d\n",
+        dprintf(ERROR, "Invalid secondary cpu num %d, SMP_MAX_CPUS %d, secondary_bootstrap_thread_count %d\n",
                 cpu, SMP_MAX_CPUS, secondary_bootstrap_thread_count);
         return;
     }
@@ -132,7 +137,7 @@ void lk_secondary_cpu_entry(void) {
     thread_secondary_cpu_init_early();
     thread_resume(secondary_bootstrap_threads[cpu - 1]);
 
-    dprintf(SPEW, "entering scheduler on cpu %d\n", cpu);
+    dprintf(INFO, "entering scheduler on cpu %d\n", cpu);
     thread_secondary_cpu_entry();
 }
 
@@ -144,12 +149,12 @@ static int secondary_cpu_bootstrap2(void *arg) {
 
 void lk_init_secondary_cpus(uint secondary_cpu_count) {
     if (secondary_cpu_count >= SMP_MAX_CPUS) {
-        dprintf(CRITICAL, "Invalid secondary_cpu_count %d, SMP_MAX_CPUS %d\n",
+        dprintf(ERROR, "Invalid secondary_cpu_count %d, SMP_MAX_CPUS %d\n",
                 secondary_cpu_count, SMP_MAX_CPUS);
         secondary_cpu_count = SMP_MAX_CPUS - 1;
     }
     for (uint i = 0; i < secondary_cpu_count; i++) {
-        dprintf(SPEW, "creating bootstrap completion thread for cpu %d\n", i + 1);
+        dprintf(INFO, "creating bootstrap completion thread for cpu %d\n", i + 1);
         thread_t *t = thread_create("secondarybootstrap2",
                                     &secondary_cpu_bootstrap2, NULL,
                                     DEFAULT_PRIORITY, DEFAULT_STACK_SIZE);

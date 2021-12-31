@@ -1,16 +1,5 @@
-/*
- * Copyright (c) 2015 Google Inc. All rights reserved
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 #include <arch/arm64.h>
 #include <kernel/thread.h>
-#include <lk/trace.h>
-
-#define LOCAL_TRACE 0
 
 static struct fpstate *current_fpstate[SMP_MAX_CPUS];
 
@@ -19,10 +8,10 @@ static void arm64_fpu_load_state(struct thread *t) {
     struct fpstate *fpstate = &t->arch.fpstate;
 
     if (fpstate == current_fpstate[cpu] && fpstate->current_cpu == cpu) {
-        LTRACEF("cpu %d, thread %s, fpstate already valid\n", cpu, t->name);
+        dprintf(DEBUG, "cpu %d, thread %s, fpstate already valid\n", cpu, t->name);
         return;
     }
-    LTRACEF("cpu %d, thread %s, load fpstate %p, last cpu %d, last fpstate %p\n",
+    dprintf(DEBUG, "cpu %d, thread %s, load fpstate %p, last cpu %d, last fpstate %p\n",
             cpu, t->name, fpstate, fpstate->current_cpu, current_fpstate[cpu]);
     fpstate->current_cpu = cpu;
     current_fpstate[cpu] = fpstate;
@@ -73,7 +62,7 @@ void arm64_fpu_save_state(struct thread *t) {
                      : "=r"(fpstate->fpcr), "=r"(fpstate->fpsr)
                      : "r"(fpstate));
 
-    LTRACEF("thread %s, fpcr %x, fpsr %x\n", t->name, fpstate->fpcr, fpstate->fpsr);
+    dprintf(DEBUG, "thread %s, fpcr %x, fpsr %x\n", t->name, fpstate->fpcr, fpstate->fpsr);
 }
 
 void arm64_fpu_exception(struct arm64_iframe_long *iframe) {

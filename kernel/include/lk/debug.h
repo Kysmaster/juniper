@@ -17,10 +17,12 @@
 #endif
 
 /* debug levels */
-#define CRITICAL 0
-#define ALWAYS 0
+#define DEBUG 0
 #define INFO 1
-#define SPEW 2
+#define ERROR 2
+
+#define SHOW_DEBUG 0
+ 
 
 __BEGIN_CDECLS
 
@@ -48,7 +50,7 @@ static inline void hexdump8(const void *ptr, size_t len) {
     hexdump8_ex(ptr, len, (uint64_t)((addr_t)ptr));
 }
 
-#define dprintf(level, x...) do { if ((level) <= LK_DEBUGLEVEL) { printf(x); } } while (0)
+int dprintf(uint8_t level, const char *fmt, ...);
 
 /* systemwide halts */
 void panic(const char *fmt, ...) __PRINTFLIKE(1, 2) __NO_RETURN;

@@ -15,10 +15,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <lk/trace.h>
 
-#define LOCAL_TRACE 0
-#define TRACE_CONTEXT_SWITCH 0
+#define TRACE_CONTEXT_SWITCH 1
 
 STATIC_ASSERT(((long)KERNEL_BASE >> MMU_KERNEL_SIZE_SHIFT) == -1);
 STATIC_ASSERT(((long)KERNEL_ASPACE_BASE >> MMU_KERNEL_SIZE_SHIFT) == -1);
@@ -97,7 +95,7 @@ status_t arch_mmu_query(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t *paddr, ui
     pte_t *page_table;
     vaddr_t vaddr_rem;
 
-    LTRACEF("aspace %p, vaddr 0x%lx\n", aspace, vaddr);
+    dprintf(DEBUG, "aspace %p, vaddr 0x%lx\n", aspace, vaddr);
 
     DEBUG_ASSERT(aspace);
     DEBUG_ASSERT(aspace->tt_virt);
@@ -134,7 +132,7 @@ status_t arch_mmu_query(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t *paddr, ui
         descriptor_type = pte & MMU_PTE_DESCRIPTOR_MASK;
         pte_addr = pte & MMU_PTE_OUTPUT_ADDR_MASK;
 
-        LTRACEF("va 0x%lx, index %d, index_shift %d, rem 0x%lx, pte 0x%llx\n",
+        dprintf(DEBUG, "va 0x%lx, index %d, index_shift %d, rem 0x%lx, pte 0x%llx\n",
                 vaddr, index, index_shift, vaddr_rem, pte);
 
         if (descriptor_type == MMU_PTE_DESCRIPTOR_INVALID)
@@ -199,7 +197,7 @@ status_t arch_mmu_query(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t *paddr, ui
             }
         }
     }
-    LTRACEF("va 0x%lx, paddr 0x%lx, flags 0x%x\n",
+    dprintf(DEBUG, "va 0x%lx, paddr 0x%lx, flags 0x%x\n",
             vaddr, paddr ? *paddr : ~0UL, flags ? *flags : ~0U);
     return 0;
 }
@@ -207,7 +205,7 @@ status_t arch_mmu_query(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t *paddr, ui
 static int alloc_page_table(paddr_t *paddrp, uint page_size_shift) {
     size_t size = 1U << page_size_shift;
 
-    LTRACEF("page_size_shift %u\n", page_size_shift);
+    dprintf(DEBUG, "page_size_shift %u\n", page_size_shift);
 
     if (size == PAGE_SIZE) {
         vm_page_t *p = pmm_alloc_page();
@@ -231,12 +229,12 @@ static int alloc_page_table(paddr_t *paddrp, uint page_size_shift) {
         }
     }
 
-    LTRACEF("allocated 0x%lx\n", *paddrp);
+    dprintf(DEBUG, "allocated 0x%lx\n", *paddrp);
     return 0;
 }
 
 static void free_page_table(void *vaddr, paddr_t paddr, uint page_size_shift) {
-    LTRACEF("vaddr %p paddr 0x%lx page_size_shift %u\n", vaddr, paddr, page_size_shift);
+    dprintf(DEBUG, "vaddr %p paddr 0x%lx page_size_shift %u\n", vaddr, paddr, page_size_shift);
 
     size_t size = 1U << page_size_shift;
     vm_page_t *page;
@@ -262,24 +260,24 @@ static pte_t *arm64_mmu_get_page_table(vaddr_t index, uint page_size_shift, pte_
         case MMU_PTE_DESCRIPTOR_INVALID:
             ret = alloc_page_table(&paddr, page_size_shift);
             if (ret) {
-                TRACEF("failed to allocate page table\n");
+                dprintf(ERROR, "failed to allocate page table\n");
                 return NULL;
             }
             vaddr = paddr_to_kvaddr(paddr);
 
-            LTRACEF("allocated page table, vaddr %p, paddr 0x%lx\n", vaddr, paddr);
+            dprintf(DEBUG, "allocated page table, vaddr %p, paddr 0x%lx\n", vaddr, paddr);
             memset(vaddr, MMU_PTE_DESCRIPTOR_INVALID, 1U << page_size_shift);
 
             __asm__ volatile("dmb ishst" ::: "memory");
 
             pte = paddr | MMU_PTE_L012_DESCRIPTOR_TABLE;
             page_table[index] = pte;
-            LTRACEF("pte %p[0x%lx] = 0x%llx\n", page_table, index, pte);
+            dprintf(DEBUG, "pte %p[0x%lx] = 0x%llx\n", page_table, index, pte);
             return vaddr;
 
         case MMU_PTE_L012_DESCRIPTOR_TABLE:
             paddr = pte & MMU_PTE_OUTPUT_ADDR_MASK;
-            LTRACEF("found page table 0x%lx\n", paddr);
+            dprintf(DEBUG, "found page table 0x%lx\n", paddr);
             return paddr_to_kvaddr(paddr);
 
         case MMU_PTE_L012_DESCRIPTOR_BLOCK:
@@ -298,13 +296,13 @@ static bool page_table_is_clear(pte_t *page_table, uint page_size_shift) {
     for (i = 0; i < count; i++) {
         pte = page_table[i];
         if (pte != MMU_PTE_DESCRIPTOR_INVALID) {
-            LTRACEF("page_table at %p still in use, index %d is 0x%llx\n",
+            dprintf(ERROR, "page_table at %p still in use, index %d is 0x%llx\n",
                     page_table, i, pte);
             return false;
         }
     }
 
-    LTRACEF("page table at %p is clear\n", page_table);
+    dprintf(DEBUG, "page table at %p is clear\n", page_table);
     return true;
 }
 
@@ -321,7 +319,7 @@ static void arm64_mmu_unmap_pt(vaddr_t vaddr, vaddr_t vaddr_rel,
     pte_t pte;
     paddr_t page_table_paddr;
 
-    LTRACEF("vaddr 0x%lx, vaddr_rel 0x%lx, size 0x%lx, index shift %d, page_size_shift %d, page_table %p\n",
+    dprintf(DEBUG, "vaddr 0x%lx, vaddr_rel 0x%lx, size 0x%lx, index shift %d, page_size_shift %d, page_table %p\n",
             vaddr, vaddr_rel, size, index_shift, page_size_shift, page_table);
 
     while (size) {
@@ -343,13 +341,13 @@ static void arm64_mmu_unmap_pt(vaddr_t vaddr, vaddr_t vaddr_rel,
                                next_page_table, asid);
             if (chunk_size == block_size ||
                     page_table_is_clear(next_page_table, page_size_shift)) {
-                LTRACEF("pte %p[0x%lx] = 0 (was page table)\n", page_table, index);
+                dprintf(DEBUG, "pte %p[0x%lx] = 0 (was page table)\n", page_table, index);
                 page_table[index] = MMU_PTE_DESCRIPTOR_INVALID;
                 __asm__ volatile("dmb ishst" ::: "memory");
                 free_page_table(next_page_table, page_table_paddr, page_size_shift);
             }
         } else if (pte) {
-            LTRACEF("pte %p[0x%lx] = 0\n", page_table, index);
+            dprintf(DEBUG, "pte %p[0x%lx] = 0\n", page_table, index);
             page_table[index] = MMU_PTE_DESCRIPTOR_INVALID;
             CF;
             if (asid == MMU_ARM64_GLOBAL_ASID)
@@ -357,7 +355,7 @@ static void arm64_mmu_unmap_pt(vaddr_t vaddr, vaddr_t vaddr_rel,
             else
                 ARM64_TLBI(vae1is, vaddr >> 12 | (vaddr_t)asid << 48);
         } else {
-            LTRACEF("pte %p[0x%lx] already clear\n", page_table, index);
+            dprintf(DEBUG, "pte %p[0x%lx] already clear\n", page_table, index);
         }
         vaddr += chunk_size;
         vaddr_rel += chunk_size;
@@ -383,12 +381,12 @@ static int arm64_mmu_map_pt(vaddr_t vaddr_in, vaddr_t vaddr_rel_in,
     vaddr_t block_mask;
     pte_t pte;
 
-    LTRACEF("vaddr 0x%lx, vaddr_rel 0x%lx, paddr 0x%lx, size 0x%lx, attrs 0x%llx, index shift %d, page_size_shift %d, page_table %p\n",
+    dprintf(DEBUG, "vaddr 0x%lx, vaddr_rel 0x%lx, paddr 0x%lx, size 0x%lx, attrs 0x%llx, index shift %d, page_size_shift %d, page_table %p\n",
             vaddr, vaddr_rel, paddr, size, attrs,
             index_shift, page_size_shift, page_table);
 
     if ((vaddr_rel | paddr | size) & ((1UL << page_size_shift) - 1)) {
-        TRACEF("not page aligned\n");
+        dprintf(ERROR, "not page aligned\n");
         return ERR_INVALID_ARGS;
     }
 
@@ -415,7 +413,7 @@ static int arm64_mmu_map_pt(vaddr_t vaddr_in, vaddr_t vaddr_rel_in,
         } else {
             pte = page_table[index];
             if (pte) {
-                TRACEF("page table entry already in use, index 0x%lx, 0x%llx\n",
+                dprintf(ERROR, "page table entry already in use, index 0x%lx, 0x%llx\n",
                        index, pte);
                 goto err;
             }
@@ -426,7 +424,7 @@ static int arm64_mmu_map_pt(vaddr_t vaddr_in, vaddr_t vaddr_rel_in,
             else
                 pte |= MMU_PTE_L3_DESCRIPTOR_PAGE;
 
-            LTRACEF("pte %p[0x%lx] = 0x%llx\n", page_table, index, pte);
+            dprintf(DEBUG, "pte %p[0x%lx] = 0x%llx\n", page_table, index, pte);
             page_table[index] = pte;
         }
         vaddr += chunk_size;
@@ -452,17 +450,17 @@ int arm64_mmu_map(vaddr_t vaddr, paddr_t paddr, size_t size, pte_t attrs,
     vaddr_t vaddr_rel = vaddr - vaddr_base;
     vaddr_t vaddr_rel_max = 1UL << top_size_shift;
 
-    LTRACEF("vaddr 0x%lx, paddr 0x%lx, size 0x%lx, attrs 0x%llx, asid 0x%x\n",
+    dprintf(DEBUG, "vaddr 0x%lx, paddr 0x%lx, size 0x%lx, attrs 0x%llx, asid 0x%x\n",
             vaddr, paddr, size, attrs, asid);
 
     if (vaddr_rel > vaddr_rel_max - size || size > vaddr_rel_max) {
-        TRACEF("vaddr 0x%lx, size 0x%lx out of range vaddr 0x%lx, size 0x%lx\n",
+        dprintf(ERROR, "vaddr 0x%lx, size 0x%lx out of range vaddr 0x%lx, size 0x%lx\n",
                vaddr, size, vaddr_base, vaddr_rel_max);
         return ERR_INVALID_ARGS;
     }
 
     if (!top_page_table) {
-        TRACEF("page table is NULL\n");
+        dprintf(ERROR, "page table is NULL\n");
         return ERR_INVALID_ARGS;
     }
 
@@ -479,16 +477,16 @@ int arm64_mmu_unmap(vaddr_t vaddr, size_t size,
     vaddr_t vaddr_rel = vaddr - vaddr_base;
     vaddr_t vaddr_rel_max = 1UL << top_size_shift;
 
-    LTRACEF("vaddr 0x%lx, size 0x%lx, asid 0x%x\n", vaddr, size, asid);
+    dprintf(DEBUG, "vaddr 0x%lx, size 0x%lx, asid 0x%x\n", vaddr, size, asid);
 
     if (vaddr_rel > vaddr_rel_max - size || size > vaddr_rel_max) {
-        TRACEF("vaddr 0x%lx, size 0x%lx out of range vaddr 0x%lx, size 0x%lx\n",
+        dprintf(ERROR, "vaddr 0x%lx, size 0x%lx out of range vaddr 0x%lx, size 0x%lx\n",
                vaddr, size, vaddr_base, vaddr_rel_max);
         return ERR_INVALID_ARGS;
     }
 
     if (!top_page_table) {
-        TRACEF("page table is NULL\n");
+        dprintf(ERROR, "page table is NULL\n");
         return ERR_INVALID_ARGS;
     }
 
@@ -499,7 +497,7 @@ int arm64_mmu_unmap(vaddr_t vaddr, size_t size,
 }
 
 int arch_mmu_map(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t paddr, uint count, uint flags) {
-    LTRACEF("vaddr 0x%lx paddr 0x%lx count %u flags 0x%x\n", vaddr, paddr, count, flags);
+    dprintf(DEBUG, "vaddr 0x%lx paddr 0x%lx count %u flags 0x%x\n", vaddr, paddr, count, flags);
 
     DEBUG_ASSERT(aspace);
     DEBUG_ASSERT(aspace->tt_virt);
@@ -536,7 +534,7 @@ int arch_mmu_map(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t paddr, uint count
 }
 
 int arch_mmu_unmap(arch_aspace_t *aspace, vaddr_t vaddr, uint count) {
-    LTRACEF("vaddr 0x%lx count %u\n", vaddr, count);
+    dprintf(DEBUG, "vaddr 0x%lx count %u\n", vaddr, count);
 
     DEBUG_ASSERT(aspace);
     DEBUG_ASSERT(aspace->tt_virt);
@@ -569,7 +567,7 @@ int arch_mmu_unmap(arch_aspace_t *aspace, vaddr_t vaddr, uint count) {
 }
 
 status_t arch_mmu_init_aspace(arch_aspace_t *aspace, vaddr_t base, size_t size, uint flags) {
-    LTRACEF("aspace %p, base 0x%lx, size 0x%zx, flags 0x%x\n", aspace, base, size, flags);
+    dprintf(DEBUG, "aspace %p, base 0x%lx, size 0x%zx, flags 0x%x\n", aspace, base, size, flags);
 
     DEBUG_ASSERT(aspace);
 
@@ -606,13 +604,13 @@ status_t arch_mmu_init_aspace(arch_aspace_t *aspace, vaddr_t base, size_t size, 
         memset(aspace->tt_virt, 0, PAGE_SIZE);
     }
 
-    LTRACEF("tt_phys 0x%lx tt_virt %p\n", aspace->tt_phys, aspace->tt_virt);
+    dprintf(DEBUG, "tt_phys 0x%lx tt_virt %p\n", aspace->tt_phys, aspace->tt_virt);
 
     return NO_ERROR;
 }
 
 status_t arch_mmu_destroy_aspace(arch_aspace_t *aspace) {
-    LTRACEF("aspace %p\n", aspace);
+    dprintf(DEBUG, "aspace %p\n", aspace);
 
     DEBUG_ASSERT(aspace);
     DEBUG_ASSERT((aspace->flags & ARCH_ASPACE_FLAG_KERNEL) == 0);
@@ -628,7 +626,7 @@ status_t arch_mmu_destroy_aspace(arch_aspace_t *aspace) {
 
 void arch_mmu_context_switch(arch_aspace_t *aspace) {
     if (TRACE_CONTEXT_SWITCH)
-        TRACEF("aspace %p\n", aspace);
+        dprintf(DEBUG, "aspace %p\n", aspace);
 
     uint64_t tcr;
     uint64_t ttbr;
@@ -640,13 +638,13 @@ void arch_mmu_context_switch(arch_aspace_t *aspace) {
         ARM64_WRITE_SYSREG(ttbr0_el1, ttbr);
 
         if (TRACE_CONTEXT_SWITCH)
-            TRACEF("ttbr 0x%llx, tcr 0x%llx\n", ttbr, tcr);
+            dprintf(DEBUG, "ttbr 0x%llx, tcr 0x%llx\n", ttbr, tcr);
         ARM64_TLBI(aside1, (uint64_t)MMU_ARM64_USER_ASID << 48);
     } else {
         tcr = MMU_TCR_FLAGS_KERNEL;
 
         if (TRACE_CONTEXT_SWITCH)
-            TRACEF("tcr 0x%llx\n", tcr);
+            dprintf(DEBUG, "tcr 0x%llx\n", tcr);
     }
 
     ARM64_WRITE_SYSREG(tcr_el1, tcr);

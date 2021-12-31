@@ -18,10 +18,13 @@
 #include <lk/reg.h>
 #include <stdio.h>
 #include <lk/trace.h>
+#include <kernel/spinlock.h>
 
 #define RXBUF_SIZE 16
 
 static cbuf_t uart_rx_buf;
+
+static spin_lock_t uart_spinlock = 0;
 
 struct bcm283x_mu_regs {
     uint32_t io;
@@ -147,6 +150,19 @@ void uart_flush_rx(int port) {
 }
 
 void uart_init_port(int port, uint baud) {
+}
+
+size_t uart_write(io_handle_t *io, const char *str, size_t len) {
+	/* write out the serial port */
+    for (size_t i = 0; i < len; i++) {
+        platform_dputc(str[i]);
+    }
+
+	return len;
+}
+
+size_t uart_read(io_handle_t *io, const char *s, size_t len) {
+	return 0;
 }
 
 

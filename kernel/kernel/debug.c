@@ -26,6 +26,7 @@
 #include <lk/err.h>
 #include <platform.h>
 #include <stdio.h>
+#include <kernel/spinlock.h>
 
 static int cmd_threads(int argc, const console_cmd_args *argv);
 static int cmd_threads_panic(int argc, const console_cmd_args *argv);
@@ -152,66 +153,58 @@ static int cmd_threadload(int argc, const console_cmd_args *argv) {
 
 #endif // THREAD_STATS
 
-#if WITH_KERNEL_EVLOG
+// TODO
+size_t uart_write(io_handle_t *io, const char *str, size_t len);
+size_t uart_read(io_handle_t *io, const char *str, size_t len);
 
-#include <lib/evlog.h>
+extern spin_lock_t printf_lock;
 
-static evlog_t kernel_evlog;
-volatile bool kernel_evlog_enable;
+/* global console io handle */
+static const io_handle_hooks_t uart_io_hooks = {
+    .write  = uart_write,
+    .read   = uart_read,
+};
 
-void kernel_evlog_init(void) {
-    evlog_init(&kernel_evlog, KERNEL_EVLOG_LEN, 4);
+io_handle_t uart_io = {
+	.magic = 0xCAFEBABE, 
+	.hooks = &uart_io_hooks, 
+};
 
-    kernel_evlog_enable = true;
+FILE uart_out = {
+	.io = &uart_io,
+};
+
+int dprintf(uint8_t level, const char *fmt, ...) {
+	spin_lock(&printf_lock);
+    va_list ap;
+    int err;
+
+	switch (level) {
+	case 1:
+		fputs("\e[36minfo\e[37m: ", &uart_out);
+		break;
+	case 2:
+		fputs("\e[31mERROR\e[37m: ", &uart_out);
+		break;
+	case 3:
+		fputs("\e[31mPANIC\e[37m: ", &uart_out);
+		break;
+	default:
+		if(SHOW_DEBUG) {
+			fputs("\e[36mDEBUG\e[37m: ", &uart_out);
+		} else {
+			spin_unlock(&printf_lock);
+   			return err;
+		}
+		
+		break;
+	}
+	
+
+    va_start(ap, fmt);
+    err = vfprintf(&uart_out, fmt, ap);
+    va_end(ap);
+
+	spin_unlock(&printf_lock);
+    return err;
 }
-
-void kernel_evlog_add(uintptr_t id, uintptr_t arg0, uintptr_t arg1) {
-    if (kernel_evlog_enable) {
-        uint index = evlog_bump_head(&kernel_evlog);
-
-        kernel_evlog.items[index] = (uintptr_t)current_time_hires();
-        kernel_evlog.items[index+1] = (arch_curr_cpu_num() << 16) | id;
-        kernel_evlog.items[index+2] = arg0;
-        kernel_evlog.items[index+3] = arg1;
-    }
-}
-
-static void kevdump_cb(const uintptr_t *i) {
-    switch (i[1] & 0xffff) {
-        case KERNEL_EVLOG_CONTEXT_SWITCH:
-            printf("%lu.%lu: context switch from %p to %p\n", i[0], i[1] >> 16, (void *)i[2], (void *)i[3]);
-            break;
-        case KERNEL_EVLOG_PREEMPT:
-            printf("%lu.%lu: preempt on thread %p\n", i[0], i[1] >> 16, (void *)i[2]);
-            break;
-        case KERNEL_EVLOG_TIMER_TICK:
-            printf("%lu.%lu: timer tick\n", i[0], i[1] >> 16);
-            break;
-        case KERNEL_EVLOG_TIMER_CALL:
-            printf("%lu.%lu: timer call %p, arg %p\n", i[0], i[1] >> 16, (void *)i[2], (void *)i[3]);
-            break;
-        case KERNEL_EVLOG_IRQ_ENTER:
-            printf("%lu.%lu: irq entry %lu\n", i[0], i[1] >> 16, i[2]);
-            break;
-        case KERNEL_EVLOG_IRQ_EXIT:
-            printf("%lu.%lu: irq exit  %lu\n", i[0], i[1] >> 16, i[2]);
-            break;
-        default:
-            printf("%lu: unknown id 0x%lx 0x%lx 0x%lx\n", i[0], i[1], i[2], i[3]);
-    }
-}
-
-void kernel_evlog_dump(void) {
-    kernel_evlog_enable = false;
-    evlog_dump(&kernel_evlog, &kevdump_cb);
-    kernel_evlog_enable = true;
-}
-
-static int cmd_kevlog(int argc, const console_cmd_args *argv) {
-    printf("kernel event log:\n");
-    kernel_evlog_dump();
-
-    return NO_ERROR;
-}
-
-#endif // WITH_KERNEL_EVLOG

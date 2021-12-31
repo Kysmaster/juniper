@@ -120,7 +120,7 @@ void gfxconsole_start(gfx_surface *surface) {
     gfxconsole.columns = surface->width / FONT_X;
     gfxconsole.extray = surface->height - (gfxconsole.rows * FONT_Y);
 
-    dprintf(SPEW, "gfxconsole: rows %d, columns %d, extray %d\n", gfxconsole.rows, gfxconsole.columns, gfxconsole.extray);
+    dprintf(INFO, "gfxconsole: rows %d, columns %d, extray %d\n", gfxconsole.rows, gfxconsole.columns, gfxconsole.extray);
 
     // start in the upper left
     gfxconsole.x = 0;
@@ -157,4 +157,3 @@ void gfxconsole_start_on_display(void) {
 void gfxconsole_init_hook(void) {
     gfxconsole_start_on_display();
 }
-

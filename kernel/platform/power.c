@@ -32,7 +32,7 @@ __WEAK void platform_halt(platform_halt_action suggested_action,
     }
 #endif  // ENABLE_PANIC_SHELL
 
-    dprintf(ALWAYS, "HALT: spinning forever... (reason = %d)\n", reason);
+    dprintf(INFO, "HALT: spinning forever... (reason = %d)\n", reason);
     arch_disable_ints();
     for (;;)
         arch_idle();
