@@ -1,23 +1,12 @@
-/*
- * Copyright (c) 2013, Google Inc. All rights reserved.
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
 #include <dev/timer/arm_generic.h>
-
 #include <arch/ops.h>
 #include <assert.h>
 #include <lk/init.h>
 #include <platform.h>
 #include <platform/interrupts.h>
 #include <platform/timer.h>
-#include <lk/trace.h>
-
-#define LOCAL_TRACE 1
-
 #include <lib/fixed_point.h>
+#include <kernel/kernel_struct.h>
 
 /* CNTFRQ AArch64 register */
 #define TIMER_REG_CNTFRQ    cntfrq_el0
@@ -82,7 +71,7 @@ static uint32_t read_cntfrq(void) {
     uint32_t cntfrq;
 
     cntfrq = READ_TIMER_REG32(TIMER_REG_CNTFRQ);
-    LTRACEF("cntfrq: 0x%08x, %u\n", cntfrq, cntfrq);
+    dprintf(DEBUG, "cntfrq: 0x%08x, %u\n", cntfrq, cntfrq);
     return cntfrq;
 }
 
@@ -94,17 +83,17 @@ static uint32_t read_cntp_ctl(void) {
 }
 
 static void write_cntp_ctl(uint32_t cntp_ctl) {
-    LTRACEF_LEVEL(3, "cntp_ctl: 0x%x %x\n", cntp_ctl, read_cntp_ctl());
+    dprintf(DEBUG, "cntp_ctl: 0x%x %x\n", cntp_ctl, read_cntp_ctl());
     WRITE_TIMER_REG32(TIMER_REG_CTL, cntp_ctl);
 }
 
 static void write_cntp_cval(uint64_t cntp_cval) {
-    LTRACEF_LEVEL(3, "cntp_cval: 0x%016llx, %llu\n", cntp_cval, cntp_cval);
+    dprintf(DEBUG, "cntp_cval: 0x%016llx, %llu\n", cntp_cval, cntp_cval);
     WRITE_TIMER_REG64(TIMER_REG_CVAL, cntp_cval);
 }
 
 static void write_cntp_tval(int32_t cntp_tval) {
-    LTRACEF_LEVEL(3, "cntp_tval: 0x%08x, %d\n", cntp_tval, cntp_tval);
+    dprintf(DEBUG, "cntp_tval: 0x%08x, %d\n", cntp_tval, cntp_tval);
     WRITE_TIMER_REG32(TIMER_REG_TVAL, cntp_tval);
 }
 
@@ -112,7 +101,7 @@ static uint64_t read_cntpct(void) {
     uint64_t cntpct;
 
     cntpct = READ_TIMER_REG64(TIMER_REG_CT);
-    LTRACEF_LEVEL(3, "cntpct: 0x%016llx, %llu\n", cntpct, cntpct);
+    dprintf(DEBUG, "cntpct: 0x%016llx, %llu\n", cntpct, cntpct);
     return cntpct;
 }
 
@@ -164,9 +153,9 @@ static void test_time_conversion_check_result(uint64_t a, uint64_t b, uint64_t l
     if (a != b) {
         uint64_t diff = is32 ? abs_int32(a - b) : abs_int64(a - b);
         if (diff <= limit)
-            LTRACEF("ROUNDED by %llu (up to %llu allowed)\n", diff, limit);
+            dprintf(DEBUG, "ROUNDED by %llu (up to %llu allowed)\n", diff, limit);
         else
-            TRACEF("FAIL, off by %llu\n", diff);
+            dprintf(DEBUG, "FAIL, off by %llu\n", diff);
     }
 }
 
@@ -175,7 +164,7 @@ static void test_lk_time_to_cntpct(uint32_t cntfrq, lk_time_t lk_time) {
     uint64_t expected_cntpct = ((uint64_t)cntfrq * lk_time + 500) / 1000;
 
     test_time_conversion_check_result(cntpct, expected_cntpct, 1, false);
-    LTRACEF_LEVEL(2, "lk_time_to_cntpct(%u): got %llu, expect %llu\n", lk_time, cntpct, expected_cntpct);
+    dprintf(DEBUG, "lk_time_to_cntpct(%u): got %llu, expect %llu\n", lk_time, cntpct, expected_cntpct);
 }
 
 static void test_cntpct_to_lk_time(uint32_t cntfrq, lk_time_t expected_lk_time, uint32_t wrap_count) {
@@ -190,7 +179,7 @@ static void test_cntpct_to_lk_time(uint32_t cntfrq, lk_time_t expected_lk_time, 
     lk_time = cntpct_to_lk_time(cntpct);
 
     test_time_conversion_check_result(lk_time, expected_lk_time, (1000 + cntfrq - 1) / cntfrq, true);
-    LTRACEF_LEVEL(2, "cntpct_to_lk_time(%llu): got %u, expect %u\n", cntpct, lk_time, expected_lk_time);
+    dprintf(DEBUG, "cntpct_to_lk_time(%llu): got %u, expect %u\n", cntpct, lk_time, expected_lk_time);
 }
 
 static void test_cntpct_to_lk_bigtime(uint32_t cntfrq, uint64_t expected_s) {
@@ -199,7 +188,7 @@ static void test_cntpct_to_lk_bigtime(uint32_t cntfrq, uint64_t expected_s) {
     lk_bigtime_t lk_bigtime = cntpct_to_lk_bigtime(cntpct);
 
     test_time_conversion_check_result(lk_bigtime, expected_lk_bigtime, (1000 * 1000 + cntfrq - 1) / cntfrq, false);
-    LTRACEF_LEVEL(2, "cntpct_to_lk_bigtime(%llu): got %llu, expect %llu\n", cntpct, lk_bigtime, expected_lk_bigtime);
+    dprintf(DEBUG, "cntpct_to_lk_bigtime(%llu): got %llu, expect %llu\n", cntpct, lk_bigtime, expected_lk_bigtime);
 }
 
 static void test_time_conversions(uint32_t cntfrq) {
@@ -228,9 +217,9 @@ static void arm_generic_timer_init_conversion_factors(uint32_t cntfrq) {
     fp_32_64_div_32_32(&cntpct_per_ms, cntfrq, 1000);
     fp_32_64_div_32_32(&ms_per_cntpct, 1000, cntfrq);
     fp_32_64_div_32_32(&us_per_cntpct, 1000 * 1000, cntfrq);
-    LTRACEF("cntpct_per_ms: %08x.%08x%08x\n", cntpct_per_ms.l0, cntpct_per_ms.l32, cntpct_per_ms.l64);
-    LTRACEF("ms_per_cntpct: %08x.%08x%08x\n", ms_per_cntpct.l0, ms_per_cntpct.l32, ms_per_cntpct.l64);
-    LTRACEF("us_per_cntpct: %08x.%08x%08x\n", us_per_cntpct.l0, us_per_cntpct.l32, us_per_cntpct.l64);
+    dprintf(DEBUG, "cntpct_per_ms: %08x.%08x%08x\n", cntpct_per_ms.l0, cntpct_per_ms.l32, cntpct_per_ms.l64);
+    dprintf(DEBUG, "ms_per_cntpct: %08x.%08x%08x\n", ms_per_cntpct.l0, ms_per_cntpct.l32, ms_per_cntpct.l64);
+    dprintf(DEBUG, "us_per_cntpct: %08x.%08x%08x\n", us_per_cntpct.l0, us_per_cntpct.l32, us_per_cntpct.l64);
 }
 
 void arm_generic_timer_init(int irq, uint32_t freq_override) {
@@ -240,7 +229,7 @@ void arm_generic_timer_init(int irq, uint32_t freq_override) {
         cntfrq = read_cntfrq();
 
         if (!cntfrq) {
-            TRACEF("Failed to initialize timer, frequency is 0\n");
+            dprintf(ERROR, "Failed to initialize timer, frequency is 0\n");
             return;
         }
     } else {
@@ -248,33 +237,35 @@ void arm_generic_timer_init(int irq, uint32_t freq_override) {
     }
 
 #if LOCAL_TRACE
-    LTRACEF("Test min cntfrq\n");
+    dprintf(DEBUG, "Test min cntfrq\n");
     arm_generic_timer_init_conversion_factors(1);
     test_time_conversions(1);
-    LTRACEF("Test max cntfrq\n");
+    dprintf(DEBUG, "Test max cntfrq\n");
     arm_generic_timer_init_conversion_factors(~0);
     test_time_conversions(~0);
-    LTRACEF("Set actual cntfrq\n");
+    dprintf(DEBUG, "Set actual cntfrq\n");
 #endif
     arm_generic_timer_init_conversion_factors(cntfrq);
     test_time_conversions(cntfrq);
 
-    LTRACEF("register irq %d on cpu %d\n", irq, arch_curr_cpu_num());
+    dprintf(INFO, "register irq %d on cpu %d\n", irq, arch_curr_cpu_num());
     register_int_handler(irq, &platform_tick, NULL);
     unmask_interrupt(irq);
 
     timer_irq = irq;
+
+	
 }
 
-static void arm_generic_timer_init_secondary_cpu(uint level) {
-    LTRACEF("register irq %d on cpu %d\n", timer_irq, arch_curr_cpu_num());
+static void arm_generic_timer_init_secondary_cpu(uint32_t level) {
+    dprintf(DEBUG, "register irq %d on cpu %d\n", timer_irq, arch_curr_cpu_num());
     register_int_handler(timer_irq, &platform_tick, NULL);
     unmask_interrupt(timer_irq);
 }
 
 
 
-static void arm_generic_timer_resume_cpu(uint level) {
+static void arm_generic_timer_resume_cpu(uint32_t level) {
     /* Always trigger a timer interrupt on each cpu for now */
     write_cntp_tval(0);
     write_cntp_ctl(1);

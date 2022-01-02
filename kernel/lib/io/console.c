@@ -47,21 +47,22 @@ static void out_count(const char *str, size_t len) {
 
     /* print to any registered loggers */
     if (!list_is_empty(&print_callbacks)) {
-        spin_lock_saved_state_t state;
-        spin_lock_save(&print_spin_lock, &state, PRINT_LOCK_FLAGS);
-
+        //spin_lock_saved_state_t state;
+        //spin_lock_save(&print_spin_lock, &state, PRINT_LOCK_FLAGS);
+		
         list_for_every_entry(&print_callbacks, cb, print_callback_t, entry) {
             if (cb->print)
                 cb->print(cb, str, len);
         }
-
-        spin_unlock_restore(&print_spin_lock, state, PRINT_LOCK_FLAGS);
+		
+        //spin_unlock_restore(&print_spin_lock, state, PRINT_LOCK_FLAGS);
     }
-
+#ifdef XDDD
     /* write out the serial port */
     for (i = 0; i < len; i++) {
         platform_dputc(str[i]);
     }
+#endif
 }
 
 void register_print_callback(print_callback_t *cb) {

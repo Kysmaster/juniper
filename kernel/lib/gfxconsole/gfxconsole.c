@@ -32,10 +32,10 @@
  */
 static struct {
     gfx_surface *surface;
-    uint rows, columns;
-    uint extray; // extra pixels left over if the rows doesn't fit precisely
+    uint32_t rows, columns;
+    uint32_t extray; // extra pixels left over if the rows doesn't fit precisely
 
-    uint x, y;
+    uint32_t x, y;
 
     uint32_t front_color;
     uint32_t back_color;

@@ -37,7 +37,7 @@ static void mark_pages_in_use(vaddr_t va, size_t len) {
     LTRACEF("aligned va 0x%lx, len 0x%zx\n", va, len);
 
     for (size_t offset = 0; offset < len; offset += PAGE_SIZE) {
-        uint flags;
+        uint32_t flags;
         paddr_t pa;
 
         status_t err = arch_mmu_query(&vmm_get_kernel_aspace()->arch_aspace, va + offset, &pa, &flags);
@@ -156,7 +156,7 @@ usage:
         }
 
         paddr_t pa;
-        uint flags;
+        uint32_t flags;
         status_t err = arch_mmu_query(&aspace->arch_aspace, argv[2].u, &pa, &flags);
         printf("arch_mmu_query returns %d\n", err);
         if (err >= 0) {

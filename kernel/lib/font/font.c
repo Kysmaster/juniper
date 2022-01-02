@@ -27,9 +27,9 @@
  *
  * @ingroup graphics
  */
-void font_draw_char(gfx_surface *surface, uint c, int x, int y, uint32_t color) {
-    uint i,j;
-    uint line;
+void font_draw_char(gfx_surface *surface, uint32_t c, int x, int y, uint32_t color) {
+    uint32_t i,j;
+    uint32_t line;
 
     // draw this char into a buffer
     for (i = 0; i < FONT_Y; i++) {

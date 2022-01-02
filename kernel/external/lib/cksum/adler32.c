@@ -9,7 +9,7 @@
 
 #include <lib/cksum.h>
 
-local uLong adler32_combine_ OF((uLong adler1, uLong adler2, z_off64_t len2));
+local uint64_t adler32_combine_ OF((uint64_t adler1, uint64_t adler2, z_off64_t len2));
 
 #define BASE 65521      /* largest prime smaller than 65536 */
 #define NMAX 5552
@@ -62,10 +62,10 @@ local uLong adler32_combine_ OF((uLong adler1, uLong adler2, z_off64_t len2));
 #endif
 
 /* ========================================================================= */
-uLong ZEXPORT adler32(adler, buf, len)
-    uLong adler;
+uint64_t ZEXPORT adler32(adler, buf, len)
+    uint64_t adler;
     const Bytef *buf;
-    uInt len;
+    uint32_t len;
 {
     unsigned long sum2;
     unsigned n;
@@ -133,9 +133,9 @@ uLong ZEXPORT adler32(adler, buf, len)
 }
 
 /* ========================================================================= */
-local uLong adler32_combine_(adler1, adler2, len2)
-    uLong adler1;
-    uLong adler2;
+local uint64_t adler32_combine_(adler1, adler2, len2)
+    uint64_t adler1;
+    uint64_t adler2;
     z_off64_t len2;
 {
     unsigned long sum1;
@@ -162,17 +162,17 @@ local uLong adler32_combine_(adler1, adler2, len2)
 }
 
 /* ========================================================================= */
-uLong ZEXPORT adler32_combine(adler1, adler2, len2)
-    uLong adler1;
-    uLong adler2;
+uint64_t ZEXPORT adler32_combine(adler1, adler2, len2)
+    uint64_t adler1;
+    uint64_t adler2;
     z_off_t len2;
 {
     return adler32_combine_(adler1, adler2, len2);
 }
 
-uLong ZEXPORT adler32_combine64(adler1, adler2, len2)
-    uLong adler1;
-    uLong adler2;
+uint64_t ZEXPORT adler32_combine64(adler1, adler2, len2)
+    uint64_t adler1;
+    uint64_t adler2;
     z_off64_t len2;
 {
     return adler32_combine_(adler1, adler2, len2);

@@ -33,7 +33,7 @@ static inline bool is_valid_vaddr(arch_aspace_t *aspace, vaddr_t vaddr) {
 }
 
 /* convert user level mmu flags to flags that go in L1 descriptors */
-static pte_t mmu_flags_to_pte_attr(uint flags) {
+static pte_t mmu_flags_to_pte_attr(uint32_t flags) {
     pte_t attr = MMU_PTE_ATTR_AF;
 
     switch (flags & ARCH_MMU_FLAG_CACHE_MASK) {
@@ -85,13 +85,13 @@ static pte_t mmu_flags_to_pte_attr(uint flags) {
     return attr;
 }
 
-status_t arch_mmu_query(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t *paddr, uint *flags) {
-    uint index;
-    uint index_shift;
-    uint page_size_shift;
+status_t arch_mmu_query(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t *paddr, uint32_t *flags) {
+    uint32_t index;
+    uint32_t index_shift;
+    uint32_t page_size_shift;
     pte_t pte;
     pte_t pte_addr;
-    uint descriptor_type;
+    uint32_t descriptor_type;
     pte_t *page_table;
     vaddr_t vaddr_rem;
 
@@ -202,7 +202,7 @@ status_t arch_mmu_query(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t *paddr, ui
     return 0;
 }
 
-static int alloc_page_table(paddr_t *paddrp, uint page_size_shift) {
+static int alloc_page_table(paddr_t *paddrp, uint32_t page_size_shift) {
     size_t size = 1U << page_size_shift;
 
     dprintf(DEBUG, "page_size_shift %u\n", page_size_shift);
@@ -233,7 +233,7 @@ static int alloc_page_table(paddr_t *paddrp, uint page_size_shift) {
     return 0;
 }
 
-static void free_page_table(void *vaddr, paddr_t paddr, uint page_size_shift) {
+static void free_page_table(void *vaddr, paddr_t paddr, uint32_t page_size_shift) {
     dprintf(DEBUG, "vaddr %p paddr 0x%lx page_size_shift %u\n", vaddr, paddr, page_size_shift);
 
     size_t size = 1U << page_size_shift;
@@ -249,7 +249,7 @@ static void free_page_table(void *vaddr, paddr_t paddr, uint page_size_shift) {
     }
 }
 
-static pte_t *arm64_mmu_get_page_table(vaddr_t index, uint page_size_shift, pte_t *page_table) {
+static pte_t *arm64_mmu_get_page_table(vaddr_t index, uint32_t page_size_shift, pte_t *page_table) {
     pte_t pte;
     paddr_t paddr;
     void *vaddr;
@@ -288,7 +288,7 @@ static pte_t *arm64_mmu_get_page_table(vaddr_t index, uint page_size_shift, pte_
     }
 }
 
-static bool page_table_is_clear(pte_t *page_table, uint page_size_shift) {
+static bool page_table_is_clear(pte_t *page_table, uint32_t page_size_shift) {
     int i;
     int count = 1U << (page_size_shift - 3);
     pte_t pte;
@@ -308,8 +308,8 @@ static bool page_table_is_clear(pte_t *page_table, uint page_size_shift) {
 
 static void arm64_mmu_unmap_pt(vaddr_t vaddr, vaddr_t vaddr_rel,
                                size_t size,
-                               uint index_shift, uint page_size_shift,
-                               pte_t *page_table, uint asid) {
+                               uint32_t index_shift, uint32_t page_size_shift,
+                               pte_t *page_table, uint32_t asid) {
     pte_t *next_page_table;
     vaddr_t index;
     size_t chunk_size;
@@ -366,8 +366,8 @@ static void arm64_mmu_unmap_pt(vaddr_t vaddr, vaddr_t vaddr_rel,
 static int arm64_mmu_map_pt(vaddr_t vaddr_in, vaddr_t vaddr_rel_in,
                             paddr_t paddr_in,
                             size_t size_in, pte_t attrs,
-                            uint index_shift, uint page_size_shift,
-                            pte_t *page_table, uint asid) {
+                            uint32_t index_shift, uint32_t page_size_shift,
+                            pte_t *page_table, uint32_t asid) {
     int ret;
     pte_t *next_page_table;
     vaddr_t index;
@@ -443,9 +443,9 @@ err:
 }
 
 int arm64_mmu_map(vaddr_t vaddr, paddr_t paddr, size_t size, pte_t attrs,
-                  vaddr_t vaddr_base, uint top_size_shift,
-                  uint top_index_shift, uint page_size_shift,
-                  pte_t *top_page_table, uint asid) {
+                  vaddr_t vaddr_base, uint32_t top_size_shift,
+                  uint32_t top_index_shift, uint32_t page_size_shift,
+                  pte_t *top_page_table, uint32_t asid) {
     int ret;
     vaddr_t vaddr_rel = vaddr - vaddr_base;
     vaddr_t vaddr_rel_max = 1UL << top_size_shift;
@@ -471,9 +471,9 @@ int arm64_mmu_map(vaddr_t vaddr, paddr_t paddr, size_t size, pte_t attrs,
 }
 
 int arm64_mmu_unmap(vaddr_t vaddr, size_t size,
-                    vaddr_t vaddr_base, uint top_size_shift,
-                    uint top_index_shift, uint page_size_shift,
-                    pte_t *top_page_table, uint asid) {
+                    vaddr_t vaddr_base, uint32_t top_size_shift,
+                    uint32_t top_index_shift, uint32_t page_size_shift,
+                    pte_t *top_page_table, uint32_t asid) {
     vaddr_t vaddr_rel = vaddr - vaddr_base;
     vaddr_t vaddr_rel_max = 1UL << top_size_shift;
 
@@ -496,7 +496,7 @@ int arm64_mmu_unmap(vaddr_t vaddr, size_t size,
     return 0;
 }
 
-int arch_mmu_map(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t paddr, uint count, uint flags) {
+int arch_mmu_map(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t paddr, uint32_t count, uint32_t flags) {
     dprintf(DEBUG, "vaddr 0x%lx paddr 0x%lx count %u flags 0x%x\n", vaddr, paddr, count, flags);
 
     DEBUG_ASSERT(aspace);
@@ -533,7 +533,7 @@ int arch_mmu_map(arch_aspace_t *aspace, vaddr_t vaddr, paddr_t paddr, uint count
     return ret;
 }
 
-int arch_mmu_unmap(arch_aspace_t *aspace, vaddr_t vaddr, uint count) {
+int arch_mmu_unmap(arch_aspace_t *aspace, vaddr_t vaddr, uint32_t count) {
     dprintf(DEBUG, "vaddr 0x%lx count %u\n", vaddr, count);
 
     DEBUG_ASSERT(aspace);
@@ -566,7 +566,7 @@ int arch_mmu_unmap(arch_aspace_t *aspace, vaddr_t vaddr, uint count) {
     return ret;
 }
 
-status_t arch_mmu_init_aspace(arch_aspace_t *aspace, vaddr_t base, size_t size, uint flags) {
+status_t arch_mmu_init_aspace(arch_aspace_t *aspace, vaddr_t base, size_t size, uint32_t flags) {
     dprintf(DEBUG, "aspace %p, base 0x%lx, size 0x%zx, flags 0x%x\n", aspace, base, size, flags);
 
     DEBUG_ASSERT(aspace);

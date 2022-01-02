@@ -5,8 +5,8 @@
 #include <inttypes.h>
 #include <sys/types.h>
 
-typedef ulong uLong;
-typedef uint uInt;
+typedef uint64_t uint64_t;
+typedef uint32_t uInt;
 typedef uint8_t Byte;
 typedef Byte Bytef;
 typedef off_t z_off_t;

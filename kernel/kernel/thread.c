@@ -412,7 +412,7 @@ void thread_exit(int retcode) {
 }
 
 static void idle_thread_routine(void) {
-    for (;;)
+	for(;;)
         arch_idle();
 }
 
@@ -422,7 +422,7 @@ static thread_t *get_top_thread(int cpu) {
 
     while (local_run_queue_bitmap) {
         /* find the first (remaining) queue with a thread in it */
-        uint next_queue = sizeof(run_queue_bitmap) * 8 - 1 - __builtin_clz(local_run_queue_bitmap);
+        uint32_t next_queue = sizeof(run_queue_bitmap) * 8 - 1 - __builtin_clz(local_run_queue_bitmap);
 
         list_for_every_entry(&run_queue[next_queue], newthread, thread_t, queue_node) {
             if (newthread->pinned_cpu < 0 || newthread->pinned_cpu == cpu)
@@ -457,7 +457,7 @@ void thread_resched(void) {
     thread_t *newthread;
 
     thread_t *current_thread = get_current_thread();
-    uint cpu = arch_curr_cpu_num();
+    uint32_t cpu = arch_curr_cpu_num();
 
     DEBUG_ASSERT(arch_ints_disabled());
     DEBUG_ASSERT(spin_lock_held(&thread_lock));
@@ -782,7 +782,7 @@ void thread_init_early(void) {
  * This function is called once at boot time
  */
 void thread_init(void) {
-    for (uint i = 0; i < SMP_MAX_CPUS; i++) {
+    for (uint32_t i = 0; i < SMP_MAX_CPUS; i++) {
         timer_initialize(&preempt_timer[i]);
     }
 }
@@ -855,7 +855,7 @@ void thread_secondary_cpu_init_early(void) {
     DEBUG_ASSERT(arch_ints_disabled());
 
     /* construct an idle thread to cover our cpu */
-    uint cpu = arch_curr_cpu_num();
+    uint32_t cpu = arch_curr_cpu_num();
     thread_t *t = idle_thread(cpu);
 
     char name[16];
@@ -880,7 +880,7 @@ void thread_secondary_cpu_init_early(void) {
 }
 
 void thread_secondary_cpu_entry(void) {
-    uint cpu = arch_curr_cpu_num();
+    uint32_t cpu = arch_curr_cpu_num();
     thread_t *t = get_current_thread();
     t->priority = IDLE_PRIORITY;
 

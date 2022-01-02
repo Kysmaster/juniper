@@ -84,7 +84,7 @@ status_t mask_interrupt(unsigned int vector) {
 
     if (vector >= INTERRUPT_ARM_LOCAL_CNTPSIRQ && vector <= INTERRUPT_ARM_LOCAL_CNTVIRQ) {
         // local timer interrupts, mask on all cpus
-        for (uint cpu = 0; cpu < 4; cpu++) {
+        for (uint32_t cpu = 0; cpu < 4; cpu++) {
             uintptr_t reg = INTC_LOCAL_TIMER_INT_CONTROL0 + cpu * 4;
 
             *REG32(reg) &= (1 << (vector - INTERRUPT_ARM_LOCAL_CNTPSIRQ));
@@ -116,7 +116,7 @@ status_t unmask_interrupt(unsigned int vector) {
 
     if (vector >= INTERRUPT_ARM_LOCAL_CNTPSIRQ && vector <= INTERRUPT_ARM_LOCAL_CNTVIRQ) {
         // local timer interrupts, unmask for all cpus
-        for (uint cpu = 0; cpu < 4; cpu++) {
+        for (uint32_t cpu = 0; cpu < 4; cpu++) {
             uintptr_t reg = INTC_LOCAL_TIMER_INT_CONTROL0 + cpu * 4;
 
             *REG32(reg) |= (1 << (vector - INTERRUPT_ARM_LOCAL_CNTPSIRQ));
@@ -154,8 +154,8 @@ void register_int_handler(unsigned int vector, int_handler handler, void *arg) {
 }
 
 enum handler_return platform_irq(arm_platform_iframe_t *frame) {
-    uint vector;
-    uint cpu = arch_curr_cpu_num();
+    uint32_t vector;
+    uint32_t cpu = arch_curr_cpu_num();
 
     THREAD_STATS_INC(interrupts);
 
@@ -239,10 +239,10 @@ enum handler_return platform_fiq(arm_platform_iframe_t *frame) {
     PANIC_UNIMPLEMENTED;
 }
 
-void bcm28xx_send_ipi(uint irq, uint cpu_mask) {
+void bcm28xx_send_ipi(uint32_t irq, uint32_t cpu_mask) {
     LTRACEF("irq %u, cpu_mask 0x%x\n", irq, cpu_mask);
 
-    for (uint i = 0; i < 4; i++) {
+    for (uint32_t i = 0; i < 4; i++) {
         if (cpu_mask & (1<<i)) {
             LTRACEF("sending to cpu %u\n", i);
             *REG32(INTC_LOCAL_MAILBOX0_SET0 + 0x10 * i) = (1 << irq);
@@ -257,7 +257,7 @@ void intc_init(void) {
     *REG32(INTC_DISABLE3) = 0xffffffff;
 
     // unable mailbox irqs on all cores
-    for (uint i = 0; i < 4; i++) {
+    for (uint32_t i = 0; i < 4; i++) {
         *REG32(INTC_LOCAL_MAILBOX_INT_CONTROL0 + 0x4 * i) = 0x1;
     }
 }

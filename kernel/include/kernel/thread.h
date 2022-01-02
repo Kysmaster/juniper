@@ -179,11 +179,11 @@ static inline bool thread_lock_held(void) {
 }
 
 /* thread local storage */
-static inline __ALWAYS_INLINE uintptr_t tls_get(uint entry) {
+static inline __ALWAYS_INLINE uintptr_t tls_get(uint32_t entry) {
     return get_current_thread()->tls[entry];
 }
 
-static inline __ALWAYS_INLINE uintptr_t __tls_set(uint entry, uintptr_t val) {
+static inline __ALWAYS_INLINE uintptr_t __tls_set(uint32_t entry, uintptr_t val) {
     uintptr_t oldval = get_current_thread()->tls[entry];
     get_current_thread()->tls[entry] = val;
     return oldval;
@@ -200,14 +200,14 @@ static inline __ALWAYS_INLINE uintptr_t __tls_set(uint entry, uintptr_t val) {
 struct thread_stats {
     lk_bigtime_t idle_time;
     lk_bigtime_t last_idle_timestamp;
-    ulong reschedules;
-    ulong context_switches;
-    ulong preempts;
-    ulong yields;
-    ulong interrupts; /* platform code increment this */
-    ulong timer_ints; /* timer code increment this */
-    ulong timers; /* timer code increment this */
-    ulong reschedule_ipis;
+    uint64_t reschedules;
+    uint64_t context_switches;
+    uint64_t preempts;
+    uint64_t yields;
+    uint64_t interrupts; /* platform code increment this */
+    uint64_t timer_ints; /* timer code increment this */
+    uint64_t timers; /* timer code increment this */
+    uint64_t reschedule_ipis;
 };
 
 extern struct thread_stats thread_stats[SMP_MAX_CPUS];

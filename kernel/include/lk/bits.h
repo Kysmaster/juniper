@@ -55,7 +55,7 @@ static inline unsigned long _ffz(unsigned long x) {
 }
 
 static inline int bitmap_ffz(unsigned long *bitmap, int numbits) {
-    uint i;
+    uint32_t i;
     int bit;
 
     for (i = 0; i < BITMAP_NUM_WORDS(numbits); i++) {

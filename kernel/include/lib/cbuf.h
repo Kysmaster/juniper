@@ -16,9 +16,9 @@
 __BEGIN_CDECLS
 
 typedef struct cbuf {
-    uint head;
-    uint tail;
-    uint len_pow2;
+    uint32_t head;
+    uint32_t tail;
+    uint32_t len_pow2;
     char *buf;
     event_t event;
     spin_lock_t lock;

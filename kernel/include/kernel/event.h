@@ -19,7 +19,7 @@ __BEGIN_CDECLS
 typedef struct event {
     int magic;
     bool signaled;
-    uint flags;
+    uint32_t flags;
     wait_queue_t wait;
 } event_t;
 
@@ -49,7 +49,7 @@ typedef struct event {
  *     event_unsignal() is called.
 */
 
-void event_init(event_t *, bool initial, uint flags);
+void event_init(event_t *, bool initial, uint32_t flags);
 void event_destroy(event_t *);
 status_t event_wait_timeout(event_t *, lk_time_t); /* wait on the event with a timeout */
 status_t event_signal(event_t *, bool reschedule);

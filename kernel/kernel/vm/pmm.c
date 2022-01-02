@@ -103,13 +103,13 @@ done_add:
     return NO_ERROR;
 }
 
-size_t pmm_alloc_pages(uint count, struct list_node *list) {
+size_t pmm_alloc_pages(uint32_t count, struct list_node *list) {
     LTRACEF("count %u\n", count);
 
     /* list must be initialized prior to calling this */
     DEBUG_ASSERT(list);
 
-    uint allocated = 0;
+    uint32_t allocated = 0;
     if (count == 0)
         return 0;
 
@@ -150,12 +150,12 @@ vm_page_t *pmm_alloc_page(void) {
     return list_peek_head_type(&list, vm_page_t, node);
 }
 
-size_t pmm_alloc_range(paddr_t address, uint count, struct list_node *list) {
+size_t pmm_alloc_range(paddr_t address, uint32_t count, struct list_node *list) {
     LTRACEF("address 0x%lx, count %u\n", address, count);
 
     DEBUG_ASSERT(list);
 
-    uint allocated = 0;
+    uint32_t allocated = 0;
     if (count == 0)
         return 0;
 
@@ -238,7 +238,7 @@ size_t pmm_free_page(vm_page_t *page) {
 }
 
 /* physically allocate a run from arenas marked as KMAP */
-void *pmm_alloc_kpages(uint count, struct list_node *list) {
+void *pmm_alloc_kpages(uint32_t count, struct list_node *list) {
     LTRACEF("count %u\n", count);
 
     /* fast path for single page */
@@ -259,7 +259,7 @@ void *pmm_alloc_kpages(uint count, struct list_node *list) {
     return paddr_to_kvaddr(pa);
 }
 
-size_t pmm_free_kpages(void *_ptr, uint count) {
+size_t pmm_free_kpages(void *_ptr, uint32_t count) {
     LTRACEF("ptr %p, count %u\n", _ptr, count);
 
     uint8_t *ptr = (uint8_t *)_ptr;
@@ -280,7 +280,7 @@ size_t pmm_free_kpages(void *_ptr, uint count) {
     return pmm_free(&list);
 }
 
-size_t pmm_alloc_contiguous(uint count, uint8_t alignment_log2, paddr_t *pa, struct list_node *list) {
+size_t pmm_alloc_contiguous(uint32_t count, uint8_t alignment_log2, paddr_t *pa, struct list_node *list) {
     LTRACEF("count %u, align %u\n", count, alignment_log2);
 
     if (count == 0)
@@ -303,8 +303,8 @@ size_t pmm_alloc_contiguous(uint count, uint8_t alignment_log2, paddr_t *pa, str
             if (rounded_base < a->base || rounded_base > a->base + a->size - 1)
                 continue;
 
-            uint aligned_offset = (rounded_base - a->base) / PAGE_SIZE;
-            uint start = aligned_offset;
+            uint32_t aligned_offset = (rounded_base - a->base) / PAGE_SIZE;
+            uint32_t start = aligned_offset;
             LTRACEF("starting search at aligned offset %u\n", start);
             LTRACEF("arena base 0x%lx size %zu\n", a->base, a->size);
 
@@ -314,7 +314,7 @@ retry:
             while ((start < a->size / PAGE_SIZE) &&
                     ((start + count) <= a->size / PAGE_SIZE)) {
                 vm_page_t *p = &a->page_array[start];
-                for (uint i = 0; i < count; i++) {
+                for (uint32_t i = 0; i < count; i++) {
                     if (p->flags & VM_PAGE_FLAG_NONFREE) {
                         /* this run is broken, break out of the inner loop.
                          * start over at the next alignment boundary
@@ -329,7 +329,7 @@ retry:
                 LTRACEF("found run from pn %u to %u\n", start, start + count);
 
                 /* remove the pages from the run out of the free list */
-                for (uint i = start; i < start + count; i++) {
+                for (uint32_t i = start; i < start + count; i++) {
                     p = &a->page_array[i];
                     DEBUG_ASSERT(!(p->flags & VM_PAGE_FLAG_NONFREE));
                     DEBUG_ASSERT(list_in_list(&p->node));
@@ -425,7 +425,7 @@ usage:
         struct list_node list;
         list_initialize(&list);
 
-        uint count = pmm_alloc_pages(argv[2].u, &list);
+        uint32_t count = pmm_alloc_pages(argv[2].u, &list);
         printf("alloc returns %u\n", count);
 
         vm_page_t *p;
@@ -450,7 +450,7 @@ usage:
         struct list_node list;
         list_initialize(&list);
 
-        uint count = pmm_alloc_range(argv[2].u, argv[3].u, &list);
+        uint32_t count = pmm_alloc_range(argv[2].u, argv[3].u, &list);
         printf("alloc returns %u\n", count);
 
         vm_page_t *p;

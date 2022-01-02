@@ -15,26 +15,26 @@
 __BEGIN_CDECLS
 
 /* routines for dealing with power of 2 values for efficiency */
-static inline __ALWAYS_INLINE bool ispow2(uint val) {
+static inline __ALWAYS_INLINE bool ispow2(uint32_t val) {
     return ((val - 1) & val) == 0;
 }
 
-static inline __ALWAYS_INLINE uint log2_uint(uint val) {
+static inline __ALWAYS_INLINE uint32_t log2_uint(uint32_t val) {
     if (val == 0)
         return 0; // undefined
 
     return (sizeof(val) * 8) - 1 - __builtin_clz(val);
 }
 
-static inline __ALWAYS_INLINE uint valpow2(uint valp2) {
+static inline __ALWAYS_INLINE uint32_t valpow2(uint32_t valp2) {
     return 1U << valp2;
 }
 
-static inline __ALWAYS_INLINE uint divpow2(uint val, uint divp2) {
+static inline __ALWAYS_INLINE uint32_t divpow2(uint32_t val, uint32_t divp2) {
     return val >> divp2;
 }
 
-static inline __ALWAYS_INLINE uint modpow2(uint val, uint modp2) {
+static inline __ALWAYS_INLINE uint32_t modpow2(uint32_t val, uint32_t modp2) {
     return val & ((1UL << modp2) - 1);
 }
 

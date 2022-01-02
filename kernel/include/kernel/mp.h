@@ -22,7 +22,7 @@ typedef enum {
 
 void mp_init(void);
 
-void mp_reschedule(mp_cpu_mask_t target, uint flags);
+void mp_reschedule(mp_cpu_mask_t target, uint32_t flags);
 void mp_set_curr_cpu_active(bool active);
 
 /* called from arch code during reschedule irq */
@@ -39,20 +39,20 @@ struct mp_state {
 
 extern struct mp_state mp;
 
-static inline int mp_is_cpu_active(uint cpu) {
+static inline int mp_is_cpu_active(uint32_t cpu) {
     return mp.active_cpus & (1 << cpu);
 }
 
-static inline int mp_is_cpu_idle(uint cpu) {
+static inline int mp_is_cpu_idle(uint32_t cpu) {
     return mp.idle_cpus & (1 << cpu);
 }
 
 /* must be called with the thread lock held */
-static inline void mp_set_cpu_idle(uint cpu) {
+static inline void mp_set_cpu_idle(uint32_t cpu) {
     mp.idle_cpus |= 1UL << cpu;
 }
 
-static inline void mp_set_cpu_busy(uint cpu) {
+static inline void mp_set_cpu_busy(uint32_t cpu) {
     mp.idle_cpus &= ~(1UL << cpu);
 }
 
@@ -60,11 +60,11 @@ static inline mp_cpu_mask_t mp_get_idle_mask(void) {
     return mp.idle_cpus;
 }
 
-static inline void mp_set_cpu_realtime(uint cpu) {
+static inline void mp_set_cpu_realtime(uint32_t cpu) {
     mp.realtime_cpus |= 1UL << cpu;
 }
 
-static inline void mp_set_cpu_non_realtime(uint cpu) {
+static inline void mp_set_cpu_non_realtime(uint32_t cpu) {
     mp.realtime_cpus &= ~(1UL << cpu);
 }
 

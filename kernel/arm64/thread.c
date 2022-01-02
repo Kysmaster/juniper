@@ -1,19 +1,9 @@
-/*
- * Copyright (c) 2008 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
 #include <lk/debug.h>
-#include <lk/trace.h>
 #include <kernel/thread.h>
 #include <arch/arm64.h>
-
-#define LOCAL_TRACE 0
 
 struct context_switch_frame {
     vaddr_t lr;
@@ -36,13 +26,12 @@ struct context_switch_frame {
 
 extern void arm64_context_switch(addr_t *old_sp, addr_t new_sp);
 
-static void initial_thread_func(void) __NO_RETURN;
 static void initial_thread_func(void) {
     int ret;
 
     thread_t *current_thread = get_current_thread();
 
-    LTRACEF("initial_thread_func: thread %p calling %p with arg %p\n", current_thread, current_thread->entry, current_thread->arg);
+    dprintf(INFO, "initial_thread_func: thread %p calling %p with arg %p\n", current_thread, current_thread->entry, current_thread->arg);
 
     /* release the thread lock that was implicitly held across the reschedule */
     spin_unlock(&thread_lock);
@@ -50,7 +39,7 @@ static void initial_thread_func(void) {
 
     ret = current_thread->entry(current_thread->arg);
 
-    LTRACEF("initial_thread_func: thread %p exiting with %d\n", current_thread, ret);
+    dprintf(INFO, "initial_thread_func: thread %p exiting with %d\n", current_thread, ret);
 
     thread_exit(ret);
 }
@@ -74,7 +63,7 @@ void arch_thread_initialize(thread_t *t) {
 }
 
 void arch_context_switch(thread_t *oldthread, thread_t *newthread) {
-    LTRACEF("old %p (%s), new %p (%s)\n", oldthread, oldthread->name, newthread, newthread->name);
+    dprintf(INFO, "old %p (%s), new %p (%s)\n", oldthread, oldthread->name, newthread, newthread->name);
     arm64_fpu_pre_context_switch(oldthread);
     DSB; /* broadcast tlb operations in case the thread moves to another cpu */
     arm64_context_switch(&oldthread->arch.sp, newthread->arch.sp);

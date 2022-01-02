@@ -1,27 +1,16 @@
-/*
- * Copyright (c) 2014 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
 #include <arch/mp.h>
-
 #include <assert.h>
-#include <lk/trace.h>
 #include <lk/err.h>
 #include <platform/interrupts.h>
 #include <arch/ops.h>
 
 /* bcm28xx has a weird custom interrupt controller for MP */
-extern void bcm28xx_send_ipi(uint irq, uint cpu_mask);
-
-#define LOCAL_TRACE 0
+extern void bcm28xx_send_ipi(uint32_t irq, uint32_t cpu_mask);
 
 #define GIC_IPI_BASE (14)
 
 status_t arch_mp_send_ipi(mp_cpu_mask_t target, mp_ipi_t ipi) {
-    LTRACEF("target 0x%x, ipi %u\n", target, ipi);
+    dprintf(DEBUG, "target 0x%x, ipi %u\n", target, ipi);
 
     /* filter out targets outside of the range of cpus we care about */
     target &= ((1UL << SMP_MAX_CPUS) - 1);
@@ -33,13 +22,13 @@ status_t arch_mp_send_ipi(mp_cpu_mask_t target, mp_ipi_t ipi) {
 }
 
 static enum handler_return arm_ipi_generic_handler(void *arg) {
-    LTRACEF("cpu %u, arg %p\n", arch_curr_cpu_num(), arg);
+    dprintf(DEBUG, "cpu %u, arg %p\n", arch_curr_cpu_num(), arg);
 
     return INT_NO_RESCHEDULE;
 }
 
 static enum handler_return arm_ipi_reschedule_handler(void *arg) {
-    LTRACEF("cpu %u, arg %p\n", arch_curr_cpu_num(), arg);
+    dprintf(DEBUG, "cpu %u, arg %p\n", arch_curr_cpu_num(), arg);
 
     return mp_mbx_reschedule_irq();
 }

@@ -75,7 +75,7 @@ static size_t trim_to_aspace(const vmm_aspace_t *aspace, vaddr_t vaddr, size_t s
     //        vaddr, size, offset, aspace->base, aspace->size);
 
     if (offset + size < offset)
-        size = ULONG_MAX - offset - 1;
+        size = UINT_MAX - offset - 1;
 
     //LTRACEF("size now 0x%zx\n", size);
 
@@ -88,7 +88,7 @@ static size_t trim_to_aspace(const vmm_aspace_t *aspace, vaddr_t vaddr, size_t s
 }
 
 static vmm_region_t *alloc_region_struct(const char *name, vaddr_t base, size_t size,
-        uint flags, uint arch_mmu_flags) {
+        uint32_t flags, uint32_t arch_mmu_flags) {
     DEBUG_ASSERT(name);
 
     vmm_region_t *r = calloc(1, sizeof(vmm_region_t));
@@ -154,9 +154,9 @@ static status_t add_region_to_aspace(vmm_aspace_t *aspace, vmm_region_t *r) {
  *
  *  Arch can override this to impose it's own restrictions.
  */
-__WEAK vaddr_t arch_mmu_pick_spot(arch_aspace_t *aspace, vaddr_t base, uint prev_region_arch_mmu_flags,
-                                  vaddr_t end,  uint next_region_arch_mmu_flags,
-                                  vaddr_t align, size_t size, uint arch_mmu_flags) {
+__WEAK vaddr_t arch_mmu_pick_spot(arch_aspace_t *aspace, vaddr_t base, uint32_t prev_region_arch_mmu_flags,
+                                  vaddr_t end,  uint32_t next_region_arch_mmu_flags,
+                                  vaddr_t align, size_t size, uint32_t arch_mmu_flags) {
     /* just align it by default */
     return ALIGN(base, align);
 }
@@ -167,7 +167,7 @@ __WEAK vaddr_t arch_mmu_pick_spot(arch_aspace_t *aspace, vaddr_t base, uint prev
 static inline bool check_gap(vmm_aspace_t *aspace,
                              vmm_region_t *prev, vmm_region_t *next,
                              vaddr_t *pva, vaddr_t align, size_t size,
-                             uint arch_mmu_flags) {
+                             uint32_t arch_mmu_flags) {
     vaddr_t gap_beg; /* first byte of a gap */
     vaddr_t gap_end; /* last byte of a gap */
 
@@ -208,7 +208,7 @@ not_found:
 }
 
 static vaddr_t alloc_spot(vmm_aspace_t *aspace, size_t size, uint8_t align_pow2,
-                          uint arch_mmu_flags, struct list_node **before) {
+                          uint32_t arch_mmu_flags, struct list_node **before) {
     DEBUG_ASSERT(aspace);
     DEBUG_ASSERT(size > 0 && IS_PAGE_ALIGNED(size));
 
@@ -247,7 +247,7 @@ done:
 /* allocate a region structure and stick it in the address space */
 static vmm_region_t *alloc_region(vmm_aspace_t *aspace, const char *name, size_t size,
                                   vaddr_t vaddr, uint8_t align_pow2,
-                                  uint vmm_flags, uint region_flags, uint arch_mmu_flags) {
+                                  uint32_t vmm_flags, uint32_t region_flags, uint32_t arch_mmu_flags) {
     /* make a region struct for it and stick it in the list */
     vmm_region_t *r = alloc_region_struct(name, vaddr, size, region_flags, arch_mmu_flags);
     if (!r)
@@ -311,7 +311,7 @@ status_t vmm_reserve_space(vmm_aspace_t *aspace, const char *name, size_t size, 
     mutex_acquire(&vmm_lock);
 
     /* lookup how it's already mapped */
-    uint arch_mmu_flags = 0;
+    uint32_t arch_mmu_flags = 0;
     arch_mmu_query(&aspace->arch_aspace, vaddr, NULL, &arch_mmu_flags);
 
     /* build a new region structure */
@@ -323,7 +323,7 @@ status_t vmm_reserve_space(vmm_aspace_t *aspace, const char *name, size_t size, 
 }
 
 status_t vmm_alloc_physical(vmm_aspace_t *aspace, const char *name, size_t size,
-                            void **ptr, uint8_t align_log2, paddr_t paddr, uint vmm_flags, uint arch_mmu_flags) {
+                            void **ptr, uint8_t align_log2, paddr_t paddr, uint32_t vmm_flags, uint32_t arch_mmu_flags) {
     status_t ret;
 
     LTRACEF("aspace %p name '%s' size 0x%zx ptr %p paddr 0x%lx vmm_flags 0x%x arch_mmu_flags 0x%x\n",
@@ -380,7 +380,7 @@ err_alloc_region:
 }
 
 status_t vmm_alloc_contiguous(vmm_aspace_t *aspace, const char *name, size_t size, void **ptr,
-                              uint8_t align_pow2, uint vmm_flags, uint arch_mmu_flags) {
+                              uint8_t align_pow2, uint32_t vmm_flags, uint32_t arch_mmu_flags) {
     status_t err = NO_ERROR;
 
     LTRACEF("aspace %p name '%s' size 0x%zx ptr %p align %hhu vmm_flags 0x%x arch_mmu_flags 0x%x\n",
@@ -454,7 +454,7 @@ err:
 }
 
 status_t vmm_alloc(vmm_aspace_t *aspace, const char *name, size_t size, void **ptr,
-                   uint8_t align_pow2, uint vmm_flags, uint arch_mmu_flags) {
+                   uint8_t align_pow2, uint32_t vmm_flags, uint32_t arch_mmu_flags) {
     status_t err = NO_ERROR;
 
     LTRACEF("aspace %p name '%s' size 0x%zx ptr %p align %hhu vmm_flags 0x%x arch_mmu_flags 0x%x\n",
@@ -582,7 +582,7 @@ status_t vmm_free_region(vmm_aspace_t *aspace, vaddr_t vaddr) {
     return NO_ERROR;
 }
 
-status_t vmm_create_aspace(vmm_aspace_t **_aspace, const char *name, uint flags) {
+status_t vmm_create_aspace(vmm_aspace_t **_aspace, const char *name, uint32_t flags) {
     status_t err;
 
     vmm_aspace_t *aspace = calloc(1, sizeof(vmm_aspace_t));

@@ -145,7 +145,7 @@ status_t display_get_info(struct display_info *info) {
     return NO_ERROR;
 }
 
-status_t display_present(struct display_image *image, uint starty, uint endy) {
+status_t display_present(struct display_image *image, uint32_t starty, uint32_t endy) {
     return NO_ERROR;
 }
 

@@ -67,7 +67,7 @@ static inline bool arch_fiqs_disabled(void) {
 #define smp_rmb()   __asm__ volatile("dmb ishld" : : : "memory")
 #define smp_wmb()   __asm__ volatile("dmb ishst" : : : "memory")
 
-static inline ulong arch_cycle_count(void) {
+static inline uint64_t arch_cycle_count(void) {
 //#warning no arch_cycle_count implementation
     return 0;
 }
@@ -81,7 +81,7 @@ static inline void arch_set_current_thread(struct thread *t) {
     ARM64_WRITE_SYSREG(tpidr_el1, (uint64_t)t);
 }
 
-static inline uint arch_curr_cpu_num(void) {
+static inline uint32_t arch_curr_cpu_num(void) {
     uint64_t mpidr =  ARM64_READ_SYSREG(mpidr_el1);
     return ((mpidr & ((1U << SMP_CPU_ID_BITS) - 1)) >> 8 << SMP_CPU_CLUSTER_SHIFT) | (mpidr & 0xff);
 }

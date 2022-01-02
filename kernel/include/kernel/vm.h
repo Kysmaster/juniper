@@ -59,8 +59,8 @@ extern struct mmu_initial_mapping mmu_initial_mappings[];
 typedef struct vm_page {
     struct list_node node;
 
-    uint flags : 8;
-    uint ref : 24;
+    uint32_t flags : 8;
+    uint32_t ref : 24;
 } vm_page_t;
 
 #define VM_PAGE_FLAG_NONFREE  (0x1)
@@ -98,8 +98,8 @@ typedef struct pmm_arena {
     struct list_node node;
     const char *name;
 
-    uint flags;
-    uint priority;
+    uint32_t flags;
+    uint32_t priority;
 
     paddr_t base;
     size_t  size;
@@ -119,7 +119,7 @@ status_t pmm_add_arena(pmm_arena_t *arena) __NONNULL((1));
  * The list must be initialized.
  * Returns the number of pages allocated.
  */
-size_t pmm_alloc_pages(uint count, struct list_node *list) __NONNULL((2));
+size_t pmm_alloc_pages(uint32_t count, struct list_node *list) __NONNULL((2));
 
 /* Allocate a single page */
 vm_page_t *pmm_alloc_page(void);
@@ -128,7 +128,7 @@ vm_page_t *pmm_alloc_page(void);
  * The list must be initialized.
  * Returns the number of pages allocated.
  */
-size_t pmm_alloc_range(paddr_t address, uint count, struct list_node *list) __NONNULL((3));
+size_t pmm_alloc_range(paddr_t address, uint32_t count, struct list_node *list) __NONNULL((3));
 
 /* Free a list of physical pages.
  * Returns the number of pages freed.
@@ -142,17 +142,17 @@ size_t pmm_free_page(vm_page_t *page) __NONNULL((1));
  * If the optional physical address pointer is passed, return the address.
  * If the optional list is passed, append the allocate page structures to the tail of the list.
  */
-size_t pmm_alloc_contiguous(uint count, uint8_t align_log2, paddr_t *pa, struct list_node *list);
+size_t pmm_alloc_contiguous(uint32_t count, uint8_t align_log2, paddr_t *pa, struct list_node *list);
 
 /* Allocate a run of pages out of the kernel area and return the pointer in kernel space.
  * If the optional list is passed, append the allocate page structures to the tail of the list.
  */
-void *pmm_alloc_kpages(uint count, struct list_node *list);
+void *pmm_alloc_kpages(uint32_t count, struct list_node *list);
 
 /* Helper routine for pmm_alloc_kpages. */
 static inline void *pmm_alloc_kpage(void) { return pmm_alloc_kpages(1, NULL); }
 
-size_t pmm_free_kpages(void *ptr, uint count);
+size_t pmm_free_kpages(void *ptr, uint32_t count);
 
 /* physical to virtual */
 void *paddr_to_kvaddr(paddr_t pa);
@@ -174,7 +174,7 @@ typedef struct vmm_aspace {
     struct list_node node;
     char name[32];
 
-    uint flags;
+    uint32_t flags;
 
     vaddr_t base;
     size_t  size;
@@ -190,8 +190,8 @@ typedef struct vmm_region {
     struct list_node node;
     char name[32];
 
-    uint flags;
-    uint arch_mmu_flags;
+    uint32_t flags;
+    uint32_t arch_mmu_flags;
 
     vaddr_t base;
     size_t  size;
@@ -208,6 +208,10 @@ static inline vmm_aspace_t *vmm_get_kernel_aspace(void) {
     return &_kernel_aspace;
 }
 
+void vm_init_preheap(void);
+
+void vm_init_postheap(void);
+
 /* virtual to container address space */
 struct vmm_aspace *vaddr_to_aspace(void *ptr);
 
@@ -217,15 +221,15 @@ __NONNULL((1));
 
 /* allocate a region of virtual space that maps a physical piece of address space.
    the physical pages that back this are not allocated from the pmm. */
-status_t vmm_alloc_physical(vmm_aspace_t *aspace, const char *name, size_t size, void **ptr, uint8_t align_log2, paddr_t paddr, uint vmm_flags, uint arch_mmu_flags)
+status_t vmm_alloc_physical(vmm_aspace_t *aspace, const char *name, size_t size, void **ptr, uint8_t align_log2, paddr_t paddr, uint32_t vmm_flags, uint32_t arch_mmu_flags)
 __NONNULL((1));
 
 /* allocate a region of memory backed by newly allocated contiguous physical memory  */
-status_t vmm_alloc_contiguous(vmm_aspace_t *aspace, const char *name, size_t size, void **ptr, uint8_t align_log2, uint vmm_flags, uint arch_mmu_flags)
+status_t vmm_alloc_contiguous(vmm_aspace_t *aspace, const char *name, size_t size, void **ptr, uint8_t align_log2, uint32_t vmm_flags, uint32_t arch_mmu_flags)
 __NONNULL((1));
 
 /* allocate a region of memory backed by newly allocated physical memory */
-status_t vmm_alloc(vmm_aspace_t *aspace, const char *name, size_t size, void **ptr, uint8_t align_log2, uint vmm_flags, uint arch_mmu_flags)
+status_t vmm_alloc(vmm_aspace_t *aspace, const char *name, size_t size, void **ptr, uint8_t align_log2, uint32_t vmm_flags, uint32_t arch_mmu_flags)
 __NONNULL((1));
 
 /* Unmap previously allocated region and free physical memory pages backing it (if any) */
@@ -235,7 +239,7 @@ status_t vmm_free_region(vmm_aspace_t *aspace, vaddr_t va);
 #define VMM_FLAG_VALLOC_SPECIFIC 0x1
 
 /* allocate a new address space */
-status_t vmm_create_aspace(vmm_aspace_t **aspace, const char *name, uint flags)
+status_t vmm_create_aspace(vmm_aspace_t **aspace, const char *name, uint32_t flags)
 __NONNULL((1));
 
 /* destroy everything in the address space */

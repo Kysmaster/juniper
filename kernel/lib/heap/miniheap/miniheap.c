@@ -319,7 +319,7 @@ void miniheap_free(void *ptr) {
 
 #if DEBUG_HEAP
     {
-        uint i;
+        uint32_t i;
         uint8_t *pad = (uint8_t *)as->padding_start;
 
         for (i = 0; i < as->padding_size; i++) {

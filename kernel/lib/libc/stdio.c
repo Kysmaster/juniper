@@ -14,6 +14,8 @@ FILE __stdio_FILEs[3] = {
     &console_io, /* stderr */
 };
 
+spin_lock_t printf_lock = SPIN_LOCK_INITIAL_VALUE;
+
 #undef DEFINE_STDIO_DESC
 
 int fputc(int _c, FILE *fp) {
@@ -85,15 +87,18 @@ int fprintf(FILE *fp, const char *fmt, ...) {
 }
 
 int printf(const char *fmt, ...) {
-	spin_lock(&kernel_struct.printf_lock);
     va_list ap;
     int err;
+
+	spin_lock_saved_state_t state;
+	spin_lock_save(&printf_lock, &state, SPIN_LOCK_FLAG_INTERRUPTS);
 
     va_start(ap, fmt);
     err = vfprintf(stdout, fmt, ap);
     va_end(ap);
 
-	spin_unlock(&kernel_struct.printf_lock);
+	spin_unlock_restore(&printf_lock, &state, SPIN_LOCK_FLAG_INTERRUPTS);
+
     return err;
 }
 

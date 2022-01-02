@@ -40,12 +40,12 @@ void cbuf_initialize_etc(cbuf_t *cbuf, size_t len, void *buf) {
 }
 
 size_t cbuf_space_avail(cbuf_t *cbuf) {
-    uint consumed = modpow2((uint)(cbuf->head - cbuf->tail), cbuf->len_pow2);
+    uint32_t consumed = modpow2((uint32_t)(cbuf->head - cbuf->tail), cbuf->len_pow2);
     return valpow2(cbuf->len_pow2) - consumed - 1;
 }
 
 size_t cbuf_space_used(cbuf_t *cbuf) {
-    return modpow2((uint)(cbuf->head - cbuf->tail), cbuf->len_pow2);
+    return modpow2((uint32_t)(cbuf->head - cbuf->tail), cbuf->len_pow2);
 }
 
 size_t cbuf_write(cbuf_t *cbuf, const void *_buf, size_t len, bool canreschedule) {

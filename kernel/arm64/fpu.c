@@ -4,7 +4,7 @@
 static struct fpstate *current_fpstate[SMP_MAX_CPUS];
 
 static void arm64_fpu_load_state(struct thread *t) {
-    uint cpu = arch_curr_cpu_num();
+    uint32_t cpu = arch_curr_cpu_num();
     struct fpstate *fpstate = &t->arch.fpstate;
 
     if (fpstate == current_fpstate[cpu] && fpstate->current_cpu == cpu) {

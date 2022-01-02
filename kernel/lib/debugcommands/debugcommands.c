@@ -76,7 +76,7 @@ static int cmd_display_mem(int argc, const console_cmd_args *argv) {
         size = 1;
     }
 
-    uint byte_order = BYTE_ORDER;
+    uint32_t byte_order = BYTE_ORDER;
     int argindex = 1;
     bool read_address = false;
     while (argc > argindex) {

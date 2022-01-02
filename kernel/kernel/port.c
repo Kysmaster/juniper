@@ -40,10 +40,10 @@
 #define MAX_PORT_GROUP_COUNT 256
 
 typedef struct {
-    uint log2;
-    uint avail;
-    uint head;
-    uint tail;
+    uint32_t log2;
+    uint32_t avail;
+    uint32_t head;
+    uint32_t tail;
     port_packet_t packet[1];
 } port_buf_t;
 
@@ -78,8 +78,8 @@ static struct list_node write_port_list;
 
 
 static port_buf_t *make_buf(bool big) {
-    uint pk_count = big ? PORT_BUFF_SIZE_BIG : PORT_BUFF_SIZE;
-    uint size = sizeof(port_buf_t) + ((pk_count - 1) * sizeof(port_packet_t));
+    uint32_t pk_count = big ? PORT_BUFF_SIZE_BIG : PORT_BUFF_SIZE;
+    uint32_t size = sizeof(port_buf_t) + ((pk_count - 1) * sizeof(port_packet_t));
     port_buf_t *buf = (port_buf_t *) malloc(size);
     if (!buf)
         return NULL;

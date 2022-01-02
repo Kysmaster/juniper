@@ -12,4 +12,4 @@
 #define FONT_X  9
 #define FONT_Y  16
 
-void font_draw_char(gfx_surface *surface, uint c, int x, int y, uint32_t color);
+void font_draw_char(gfx_surface *surface, uint32_t c, int x, int y, uint32_t color);

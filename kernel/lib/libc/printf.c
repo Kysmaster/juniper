@@ -100,7 +100,7 @@ int vsnprintf(char *str, size_t len, const char *fmt, va_list ap) {
 #define LEADZEROFLAG   0x00001000
 #define BLANKPOSFLAG   0x00002000
 
-__NO_INLINE static char *longlong_to_string(char *buf, unsigned long long n, size_t len, uint flag, char *signchar) {
+__NO_INLINE static char *longlong_to_string(char *buf, unsigned long long n, size_t len, uint32_t flag, char *signchar) {
     size_t pos = len;
     int negative = 0;
 
@@ -136,7 +136,7 @@ __NO_INLINE static char *longlong_to_string(char *buf, unsigned long long n, siz
 static const char hextable[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 static const char hextable_caps[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
-__NO_INLINE static char *longlong_to_hexstring(char *buf, unsigned long long u, size_t len, uint flag) {
+__NO_INLINE static char *longlong_to_hexstring(char *buf, unsigned long long u, size_t len, uint32_t flag) {
     size_t pos = len;
     const char *table = (flag & CAPSFLAG) ? hextable_caps : hextable;
 
@@ -179,9 +179,9 @@ __NO_INLINE static size_t exponent_to_string(char *buf, int32_t exponent) {
     else pos++;
 
     /* print decimal string, from the right */
-    uint i = pos;
+    uint32_t i = pos;
     do {
-        uint digit = (uint32_t)exponent % 10;
+        uint32_t digit = (uint32_t)exponent % 10;
 
         buf[--i] = digit + '0';
 
@@ -192,7 +192,7 @@ __NO_INLINE static size_t exponent_to_string(char *buf, int32_t exponent) {
     return pos;
 }
 
-__NO_INLINE static char *double_to_string(char *buf, size_t len, double d, uint flag) {
+__NO_INLINE static char *double_to_string(char *buf, size_t len, double d, uint32_t flag) {
     size_t pos = 0;
     union double_int du = { d };
 
@@ -268,9 +268,9 @@ __NO_INLINE static char *double_to_string(char *buf, size_t len, double d, uint 
             /* handle the fractional part */
             uint32_t frac = ((d - u) * 1000000) + .5;
 
-            uint i = decimal_spot + 6 + 1;
+            uint32_t i = decimal_spot + 6 + 1;
             while (frac != 0) {
-                uint digit = frac % 10;
+                uint32_t digit = frac % 10;
 
                 buf[--i] = digit + '0';
 
@@ -291,7 +291,7 @@ done:
     return buf;
 }
 
-__NO_INLINE static char *double_to_hexstring(char *buf, size_t len, double d, uint flag) {
+__NO_INLINE static char *double_to_hexstring(char *buf, size_t len, double d, uint32_t flag) {
     size_t pos = 0;
     union double_int u = { d };
 
@@ -345,7 +345,7 @@ __NO_INLINE static char *double_to_hexstring(char *buf, size_t len, double d, ui
         int zero_count = 0;
         bool output_dot = false;
         for (int i = 52 - 4; i >= 0; i -= 4) {
-            uint digit = (fraction >> i) & 0xf;
+            uint32_t digit = (fraction >> i) & 0xf;
 
             if (digit == 0) {
                 zero_count++;
@@ -572,7 +572,7 @@ _output_string:
         if (flags & LEFTFORMATFLAG) {
             /* left justify the text */
             OUTPUT_STRING(s, string_len);
-            uint written = err;
+            uint32_t written = err;
 
             /* pad to the right (if necessary) */
             for (; format_num > written; format_num--)

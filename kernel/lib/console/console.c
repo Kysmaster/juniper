@@ -68,9 +68,9 @@ typedef struct console {
 #if CONSOLE_ENABLE_HISTORY
 /* command history routines */
 static void add_history(console_t *con, const char *line);
-static uint start_history_cursor(console_t *con);
-static const char *next_history(console_t *con, uint *cursor);
-static const char *prev_history(console_t *con, uint *cursor);
+static uint32_t start_history_cursor(console_t *con);
+static const char *next_history(console_t *con, uint32_t *cursor);
+static const char *prev_history(console_t *con, uint32_t *cursor);
 static void dump_history(console_t *con);
 #endif
 
@@ -112,21 +112,21 @@ static int cmd_history(int argc, const console_cmd_args *argv) {
     return 0;
 }
 
-static inline char *history_line(console_t *con, uint line) {
+static inline char *history_line(console_t *con, uint32_t line) {
     return con->history + line * LINE_LEN;
 }
 
-static inline uint ptrnext(uint ptr) {
+static inline uint32_t ptrnext(uint32_t ptr) {
     return (ptr + 1) % HISTORY_LEN;
 }
 
-static inline uint ptrprev(uint ptr) {
+static inline uint32_t ptrprev(uint32_t ptr) {
     return (ptr - 1) % HISTORY_LEN;
 }
 
 static void dump_history(console_t *con) {
     printf("command history:\n");
-    uint ptr = ptrprev(con->history_next);
+    uint32_t ptr = ptrprev(con->history_next);
     int i;
     for (i=0; i < HISTORY_LEN; i++) {
         if (history_line(con, ptr)[0] != 0)
@@ -148,12 +148,12 @@ static void add_history(console_t *con, const char *line) {
     con->history_next = ptrnext(con->history_next);
 }
 
-static uint start_history_cursor(console_t *con) {
+static uint32_t start_history_cursor(console_t *con) {
     return ptrprev(con->history_next);
 }
 
-static const char *next_history(console_t *con, uint *cursor) {
-    uint i = ptrnext(*cursor);
+static const char *next_history(console_t *con, uint32_t *cursor) {
+    uint32_t i = ptrnext(*cursor);
 
     if (i == con->history_next)
         return ""; // can't let the cursor hit the head
@@ -162,8 +162,8 @@ static const char *next_history(console_t *con, uint *cursor) {
     return history_line(con, i);
 }
 
-static const char *prev_history(console_t *con, uint *cursor) {
-    uint i;
+static const char *prev_history(console_t *con, uint32_t *cursor) {
+    uint32_t i;
     const char *str = history_line(con, *cursor);
 
     /* if we are already at head, stop here */
@@ -262,7 +262,7 @@ static int read_debug_line(const char **outbuffer, void *cookie) {
     int escape_level = 0;
     console_t *con = (console_t *)cookie;
 #if CONSOLE_ENABLE_HISTORY
-    uint history_cursor = start_history_cursor(con);
+    uint32_t history_cursor = start_history_cursor(con);
 #endif
 
     char *buffer = con->debug_buffer;

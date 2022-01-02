@@ -117,7 +117,7 @@ void platform_early_init(void) {
     uintptr_t sec_entry = (uintptr_t)(&arm_reset - KERNEL_ASPACE_BASE);
     unsigned long long *spin_table = (void *)(KERNEL_ASPACE_BASE + 0xd8);
 
-    for (uint i = 1; i <= 3; i++) {
+    for (uint32_t i = 1; i <= 3; i++) {
         spin_table[i] = sec_entry;
         __asm__ __volatile__ ("" : : : "memory");
         arch_clean_cache_range(0xffff000000000000,256);

@@ -22,9 +22,9 @@ static void arch_disable_ints(void);
 static bool arch_ints_disabled(void);
 static bool arch_in_int_handler(void);
 
-static ulong arch_cycle_count(void);
+static uint64_t arch_cycle_count(void);
 
-static uint arch_curr_cpu_num(void);
+static uint32_t arch_curr_cpu_num(void);
 
 /* Use to align structures on cache lines to avoid cpu aliasing. */
 #define __CPU_ALIGN __ALIGNED(CACHE_LINE)
@@ -35,8 +35,8 @@ static uint arch_curr_cpu_num(void);
 #define UCACHE (ICACHE|DCACHE)
 #ifndef ASSEMBLY
 
-void arch_disable_cache(uint flags);
-void arch_enable_cache(uint flags);
+void arch_disable_cache(uint32_t flags);
+void arch_enable_cache(uint32_t flags);
 
 void arch_clean_cache_range(addr_t start, size_t len);
 void arch_clean_invalidate_cache_range(addr_t start, size_t len);

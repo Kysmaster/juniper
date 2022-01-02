@@ -18,10 +18,10 @@ typedef struct iovec {
     size_t iov_len;
 } iovec_t;
 
-ssize_t iovec_size(const iovec_t *iov, uint iov_cnt);
+ssize_t iovec_size(const iovec_t *iov, uint32_t iov_cnt);
 
-ssize_t iovec_to_membuf(uint8_t *buf, uint buf_len,
-                        const iovec_t *iov, uint iov_cnt, uint iov_pos);
+ssize_t iovec_to_membuf(uint8_t *buf, uint32_t buf_len,
+                        const iovec_t *iov, uint32_t iov_cnt, uint32_t iov_pos);
 
 __END_CDECLS
 

@@ -18,7 +18,7 @@ struct arch_aspace {
     paddr_t tt_phys;
     pte_t *tt_virt;
 
-    uint flags;
+    uint32_t flags;
 
     /* range of address space */
     vaddr_t base;

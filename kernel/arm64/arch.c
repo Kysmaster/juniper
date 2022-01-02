@@ -84,7 +84,7 @@ void arch_idle(void) {
     __asm__ volatile("wfi");
 }
 
-void arch_chain_load(void *entry, ulong arg0, ulong arg1, ulong arg2, ulong arg3) {
+void arch_chain_load(void *entry, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3) {
     PANIC_UNIMPLEMENTED;
 }
 
@@ -123,12 +123,8 @@ void arch_enter_uspace(vaddr_t entry_point, vaddr_t user_stack_top) {
 }
 
 /* called from assembly */
-void arm64_secondary_entry(ulong asm_cpu_num) {
-	dprintf(INFO, "Locking cpu %d\n", asm_cpu_num);
-	while(kernel_struct.node_boot_locked);
-	dprintf(INFO, "Unlocking cpu %d\n", asm_cpu_num);
-
-    uint cpu = arch_curr_cpu_num();
+void arm64_secondary_entry(uint64_t asm_cpu_num) {
+    uint32_t cpu = arch_curr_cpu_num();
     if (cpu != asm_cpu_num)
         return;
 

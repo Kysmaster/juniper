@@ -38,7 +38,7 @@
  * @param initial  Initial value for "signaled" state
  * @param flags    0 or EVENT_FLAG_AUTOUNSIGNAL
  */
-void event_init(event_t *e, bool initial, uint flags) {
+void event_init(event_t *e, bool initial, uint32_t flags) {
     *e = (event_t)EVENT_INITIAL_VALUE(*e, initial, flags);
 }
 

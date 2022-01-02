@@ -1,15 +1,6 @@
-/*
- * Copyright (c) 2012 Corey Tabaka
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 #include <dev/driver.h>
 #include <assert.h>
 #include <lk/err.h>
-#include <lk/trace.h>
 
 /* static list of devices constructed with DEVICE_INSTANCE macros */
 extern struct device __start_devices __WEAK;
@@ -23,7 +14,7 @@ status_t device_init_all(void) {
             status_t code = device_init(dev);
 
             if (code < 0) {
-                TRACEF("Driver init failed for driver \"%s\", device \"%s\", reason %d\n",
+                dprintf(ERROR, "Driver init failed for driver \"%s\", device \"%s\", reason %d\n",
                        dev->driver->type, dev->name, code);
 
                 res = code;
@@ -41,7 +32,7 @@ status_t device_fini_all(void) {
         status_t code = device_fini(dev);
 
         if (code < 0) {
-            TRACEF("Driver fini failed for driver \"%s\", device \"%s\", reason %d\n",
+            dprintf(ERROR, "Driver fini failed for driver \"%s\", device \"%s\", reason %d\n",
                    dev->driver->type, dev->name, code);
 
             res = code;

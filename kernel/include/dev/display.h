@@ -42,8 +42,8 @@ enum image_format {
 
 struct display_info {
     enum display_format format;
-    uint width;
-    uint height;
+    uint32_t width;
+    uint32_t height;
 };
 
 status_t display_get_info(struct display_info *info) __NONNULL((1));
@@ -51,20 +51,20 @@ status_t display_get_info(struct display_info *info) __NONNULL((1));
 struct display_image {
     enum image_format format;
     void *pixels;
-    uint width;
-    uint height;
+    uint32_t width;
+    uint32_t height;
     int stride; // row length in pixels
     int rowbytes; // row length in bytes
 };
 
-status_t display_present(struct display_image *image, uint starty, uint endy)
+status_t display_present(struct display_image *image, uint32_t starty, uint32_t endy)
 __NONNULL((1));
 
 struct display_framebuffer {
     enum display_format format;
     struct display_image image;
     // Update function
-    void (*flush)(uint starty, uint endy);
+    void (*flush)(uint32_t starty, uint32_t endy);
 };
 
 status_t display_get_framebuffer(struct display_framebuffer *fb)

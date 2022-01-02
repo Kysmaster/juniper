@@ -44,35 +44,35 @@ typedef struct gfx_surface {
     void *ptr;
     bool free_on_destroy;
     gfx_format format;
-    uint width;
-    uint height;
-    uint stride;
-    uint pixelsize;
+    uint32_t width;
+    uint32_t height;
+    uint32_t stride;
+    uint32_t pixelsize;
     size_t len;
-    uint alpha;
+    uint32_t alpha;
 
     // function pointers
     uint32_t (*translate_color)(uint32_t input);
-    void (*copyrect)(struct gfx_surface *, uint x, uint y, uint width, uint height, uint x2, uint y2);
-    void (*fillrect)(struct gfx_surface *, uint x, uint y, uint width, uint height, uint color);
-    void (*putpixel)(struct gfx_surface *, uint x, uint y, uint color);
-    void (*flush)(uint starty, uint endy);
+    void (*copyrect)(struct gfx_surface *, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t x2, uint32_t y2);
+    void (*fillrect)(struct gfx_surface *, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color);
+    void (*putpixel)(struct gfx_surface *, uint32_t x, uint32_t y, uint32_t color);
+    void (*flush)(uint32_t starty, uint32_t endy);
 } gfx_surface;
 
 // copy a rect from x,y with width x height to x2, y2
-void gfx_copyrect(gfx_surface *surface, uint x, uint y, uint width, uint height, uint x2, uint y2);
+void gfx_copyrect(gfx_surface *surface, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t x2, uint32_t y2);
 
 // fill a rect within the surface with a color
-void gfx_fillrect(gfx_surface *surface, uint x, uint y, uint width, uint height, uint color);
+void gfx_fillrect(gfx_surface *surface, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color);
 
 // draw a pixel at x, y in the surface
-void gfx_putpixel(gfx_surface *surface, uint x, uint y, uint color);
+void gfx_putpixel(gfx_surface *surface, uint32_t x, uint32_t y, uint32_t color);
 
 // draw a single pixel line between x1,y1 and x2,y1
-void gfx_line(gfx_surface *surface, uint x1, uint y1, uint x2, uint y2, uint color);
+void gfx_line(gfx_surface *surface, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color);
 
 // clear the entire surface with a color
-static inline void gfx_clear(gfx_surface *surface, uint color) {
+static inline void gfx_clear(gfx_surface *surface, uint32_t color) {
     surface->fillrect(surface, 0, 0, surface->width, surface->height, color);
 
     if (surface->flush)
@@ -80,14 +80,14 @@ static inline void gfx_clear(gfx_surface *surface, uint color) {
 }
 
 // blend between two surfaces
-void gfx_surface_blend(struct gfx_surface *target, struct gfx_surface *source, uint destx, uint desty);
+void gfx_surface_blend(struct gfx_surface *target, struct gfx_surface *source, uint32_t destx, uint32_t desty);
 
 void gfx_flush(struct gfx_surface *surface);
 
-void gfx_flush_rows(struct gfx_surface *surface, uint start, uint end);
+void gfx_flush_rows(struct gfx_surface *surface, uint32_t start, uint32_t end);
 
 // surface setup
-gfx_surface *gfx_create_surface(void *ptr, uint width, uint height, uint stride, gfx_format format);
+gfx_surface *gfx_create_surface(void *ptr, uint32_t width, uint32_t height, uint32_t stride, gfx_format format);
 
 // utility routine to make a surface out of a display framebuffer
 struct display_framebuffer;

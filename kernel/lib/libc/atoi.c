@@ -153,8 +153,8 @@ unsigned long strtoul(const char *nptr, char **endptr, int base) {
         new_ret = ret * base;
         if (new_ret / base != ret ||
                 new_ret + v < new_ret ||
-                ret == ULONG_MAX) {
-            ret = ULONG_MAX;
+                ret == UINT_MAX) {
+            ret = UINT_MAX;
             errno = ERANGE;
         } else {
             ret = new_ret + v;
@@ -163,7 +163,7 @@ unsigned long strtoul(const char *nptr, char **endptr, int base) {
         nptr++;
     }
 
-    if (neg && ret != ULONG_MAX) {
+    if (neg && ret != UINT_MAX) {
         ret = -ret;
     }
 

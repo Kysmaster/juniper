@@ -1,11 +1,3 @@
-/*
- * Copyright (c) 2008-2014 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 /**
  * @file
  * @brief  Kernel timer subsystem
@@ -50,7 +42,7 @@ void timer_initialize(timer_t *timer) {
     *timer = (timer_t)TIMER_INITIAL_VALUE(*timer);
 }
 
-static void insert_timer_in_queue(uint cpu, timer_t *timer) {
+static void insert_timer_in_queue(uint32_t cpu, timer_t *timer) {
     timer_t *entry;
 
     DEBUG_ASSERT(arch_ints_disabled());
@@ -90,7 +82,7 @@ static void timer_set(timer_t *timer, lk_time_t delay, lk_time_t period, timer_c
     spin_lock_saved_state_t state;
     spin_lock_irqsave(&timer_lock, state);
 
-    uint cpu = arch_curr_cpu_num();
+    uint32_t cpu = arch_curr_cpu_num();
     insert_timer_in_queue(cpu, timer);
 
     if (list_peek_head_type(&timers[cpu].timer_queue, timer_t, node) == timer) {
@@ -151,7 +143,7 @@ void timer_cancel(timer_t *timer) {
     spin_lock_saved_state_t state;
     spin_lock_irqsave(&timer_lock, state);
 
-    uint cpu = arch_curr_cpu_num();
+    uint32_t cpu = arch_curr_cpu_num();
 
     timer_t *oldhead = list_peek_head_type(&timers[cpu].timer_queue, timer_t, node);
 
@@ -179,7 +171,7 @@ void timer_cancel(timer_t *timer) {
         else
             delay = newhead->scheduled_time - now;
 
-        LTRACEF("setting new timer to %u\n", (uint) delay);
+        LTRACEF("setting new timer to %u\n", (uint32_t) delay);
         platform_set_oneshot_timer(timer_tick, NULL, delay);
     }
 
@@ -196,7 +188,7 @@ static enum handler_return timer_tick(void *arg, lk_time_t now) {
     THREAD_STATS_INC(timer_ints);
 //  KEVLOG_TIMER_TICK(); // enable only if necessary
 
-    uint cpu = arch_curr_cpu_num();
+    uint32_t cpu = arch_curr_cpu_num();
 
     LTRACEF("cpu %u now %u, sp %p\n", cpu, now, __GET_FRAME());
 
@@ -254,7 +246,7 @@ static enum handler_return timer_tick(void *arg, lk_time_t now) {
 
         lk_time_t delay = timer->scheduled_time - now;
 
-        LTRACEF("setting new timer for %u msecs for event %p\n", (uint)delay, timer);
+        LTRACEF("setting new timer for %u msecs for event %p\n", (uint32_t)delay, timer);
         platform_set_oneshot_timer(timer_tick, NULL, delay);
     }
 
@@ -265,7 +257,7 @@ static enum handler_return timer_tick(void *arg, lk_time_t now) {
 
 void timer_init(void) {
     timer_lock = SPIN_LOCK_INITIAL_VALUE;
-    for (uint i = 0; i < SMP_MAX_CPUS; i++) {
+    for (uint32_t i = 0; i < SMP_MAX_CPUS; i++) {
         list_initialize(&timers[i].timer_queue);
     }
 }

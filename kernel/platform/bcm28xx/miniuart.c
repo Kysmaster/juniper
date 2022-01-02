@@ -1,11 +1,3 @@
-/*
- * Copyright (c) 2016 Gurjant Kalsi
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 // TODO(gkalsi): Unify the two UART codepaths and use the port parameter to
 // select between the real uart and the miniuart.
 
@@ -24,7 +16,7 @@
 
 static cbuf_t uart_rx_buf;
 
-static spin_lock_t uart_spinlock = 0;
+static spin_lock_t uart_spinlock = SPIN_LOCK_INITIAL_VALUE;
 
 struct bcm283x_mu_regs {
     uint32_t io;
@@ -149,15 +141,19 @@ void uart_flush_rx(int port) {
     writel(MU_IIR_CLR_RECV_FIFO, &mu_regs->iir);
 }
 
-void uart_init_port(int port, uint baud) {
+void uart_init_port(int port, uint32_t baud) {
 }
 
 size_t uart_write(io_handle_t *io, const char *str, size_t len) {
 	/* write out the serial port */
-    for (size_t i = 0; i < len; i++) {
+	spin_lock_saved_state_t state;
+    spin_lock_save(&uart_spinlock, &state, SPIN_LOCK_FLAG_INTERRUPTS);
+
+	for (size_t i = 0; i < len; i++) {
         platform_dputc(str[i]);
     }
-
+    spin_unlock_restore(&uart_spinlock, state, SPIN_LOCK_FLAG_INTERRUPTS);
+    
 	return len;
 }
 
@@ -165,6 +161,3 @@ size_t uart_read(io_handle_t *io, const char *s, size_t len) {
 	// TODO: implement
 	return 0;
 }
-
-
-
