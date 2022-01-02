@@ -1,11 +1,3 @@
-/*
- * Copyright (c) 2015 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-#include <lk/trace.h>
 #include <assert.h>
 #include <lk/err.h>
 #include <lk/bits.h>
@@ -14,13 +6,9 @@
 #include <kernel/mp.h>
 #include <platform/interrupts.h>
 #include <platform/bcm28xx.h>
-
 #include <arch/arm64.h>
+
 typedef struct arm64_iframe_long arm_platform_iframe_t;
-
-
-
-#define LOCAL_TRACE 0
 
 /* global interrupt controller */
 #define INTC_PEND0  (ARMCTRL_INTC_BASE + 0x0)
@@ -77,7 +65,7 @@ static struct int_handler_struct int_handler_table[MAX_INT];
 static spin_lock_t lock = SPIN_LOCK_INITIAL_VALUE;
 
 status_t mask_interrupt(unsigned int vector) {
-    LTRACEF("vector %u\n", vector);
+    dprintf(DEBUG, "vector %u\n", vector);
 
     spin_lock_saved_state_t state;
     spin_lock_irqsave(&lock, state);
@@ -109,7 +97,7 @@ status_t mask_interrupt(unsigned int vector) {
 }
 
 status_t unmask_interrupt(unsigned int vector) {
-    LTRACEF("vector %u\n", vector);
+    dprintf(DEBUG, "vector %u\n", vector);
 
     spin_lock_saved_state_t state;
     spin_lock_irqsave(&lock, state);
@@ -166,7 +154,7 @@ enum handler_return platform_irq(arm_platform_iframe_t *frame) {
 
     if (pend != 0) {
         // it's a local interrupt
-        LTRACEF("local pend 0x%x\n", pend);
+        dprintf(DEBUG, "local pend 0x%x\n", pend);
         vector = ARM_IRQ_LOCAL_BASE + ctz(pend);
         goto decoded;
     }
@@ -175,7 +163,7 @@ enum handler_return platform_irq(arm_platform_iframe_t *frame) {
 #if 0
     // look in bank 0 (ARM interrupts)
     pend = *REG32(INTC_PEND0);
-    LTRACEF("pend0 0x%x\n", pend);
+    dprintf(DEBUG, "pend0 0x%x\n", pend);
     pend &= ~((1<<8)|(1<<9)); // mask out bit 8 and 9
     if (pend != 0) {
         // it's a bank 0 interrupt
@@ -186,7 +174,7 @@ enum handler_return platform_irq(arm_platform_iframe_t *frame) {
 
     // look for VC interrupt bank 1
     pend = *REG32(INTC_PEND1);
-    LTRACEF("pend1 0x%x\n", pend);
+    dprintf(DEBUG, "pend1 0x%x\n", pend);
     if (pend != 0) {
         // it's a bank 1 interrupt
         vector = ARM_IRQ1_BASE + ctz(pend);
@@ -195,7 +183,7 @@ enum handler_return platform_irq(arm_platform_iframe_t *frame) {
 
     // look for VC interrupt bank 2
     pend = *REG32(INTC_PEND2);
-    LTRACEF("pend2 0x%x\n", pend);
+    dprintf(DEBUG, "pend2 0x%x\n", pend);
     if (pend != 0) {
         // it's a bank 2 interrupt
         vector = ARM_IRQ2_BASE + ctz(pend);
@@ -205,14 +193,14 @@ enum handler_return platform_irq(arm_platform_iframe_t *frame) {
     vector = 0xffffffff;
 
 decoded:
-    LTRACEF("cpu %u vector %u\n", cpu, vector);
+    dprintf(DEBUG, "cpu %u vector %u\n", cpu, vector);
 
     // dispatch the irq
     enum handler_return ret = INT_NO_RESCHEDULE;
 
     if (vector == INTERRUPT_ARM_LOCAL_MAILBOX0) {
         pend = *REG32(INTC_LOCAL_MAILBOX0_CLR0 + 0x10 * cpu);
-        LTRACEF("mailbox0 clr 0x%x\n", pend);
+        dprintf(DEBUG, "mailbox0 clr 0x%x\n", pend);
 
         // ack it
         *REG32(INTC_LOCAL_MAILBOX0_CLR0 + 0x10 * cpu) = pend;
@@ -240,11 +228,11 @@ enum handler_return platform_fiq(arm_platform_iframe_t *frame) {
 }
 
 void bcm28xx_send_ipi(uint32_t irq, uint32_t cpu_mask) {
-    LTRACEF("irq %u, cpu_mask 0x%x\n", irq, cpu_mask);
+    dprintf(DEBUG, "irq %u, cpu_mask 0x%x\n", irq, cpu_mask);
 
     for (uint32_t i = 0; i < 4; i++) {
         if (cpu_mask & (1<<i)) {
-            LTRACEF("sending to cpu %u\n", i);
+            dprintf(DEBUG, "sending to cpu %u\n", i);
             *REG32(INTC_LOCAL_MAILBOX0_SET0 + 0x10 * i) = (1 << irq);
         }
     }
@@ -261,4 +249,3 @@ void intc_init(void) {
         *REG32(INTC_LOCAL_MAILBOX_INT_CONTROL0 + 0x4 * i) = 0x1;
     }
 }
-

@@ -106,10 +106,7 @@ static int bootstrap2(void *arg) {
 
 	printf("welocome to Juniper MP\n");
 
-	for (;;)
-	{
-		printf("%u\n", current_time_hires());
-	}
+
 
     return 0;
 }
@@ -122,12 +119,14 @@ void lk_secondary_cpu_entry(void) {
                 cpu, SMP_MAX_CPUS, secondary_bootstrap_thread_count);
         return;
     }
-
+	
     thread_secondary_cpu_init_early();
     thread_resume(secondary_bootstrap_threads[cpu - 1]);
 
     dprintf(INFO, "entering scheduler on cpu %d\n", cpu);
     thread_secondary_cpu_entry();
+
+	
 }
 
 static int secondary_cpu_bootstrap2(void *arg) {

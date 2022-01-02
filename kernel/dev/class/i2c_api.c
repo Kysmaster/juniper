@@ -1,11 +1,3 @@
-/*
- * Copyright (c) 2013 Corey Tabaka
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 #include <lk/err.h>
 #include <dev/class/i2c.h>
 

@@ -236,7 +236,6 @@ void arm_generic_timer_init(int irq, uint32_t freq_override) {
         cntfrq = freq_override;
     }
 
-#if LOCAL_TRACE
     dprintf(DEBUG, "Test min cntfrq\n");
     arm_generic_timer_init_conversion_factors(1);
     test_time_conversions(1);
@@ -244,7 +243,7 @@ void arm_generic_timer_init(int irq, uint32_t freq_override) {
     arm_generic_timer_init_conversion_factors(~0);
     test_time_conversions(~0);
     dprintf(DEBUG, "Set actual cntfrq\n");
-#endif
+
     arm_generic_timer_init_conversion_factors(cntfrq);
     test_time_conversions(cntfrq);
 

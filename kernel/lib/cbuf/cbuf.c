@@ -1,21 +1,11 @@
-/*
- * Copyright (c) 2008-2015 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
 #include <stdlib.h>
 #include <lk/debug.h>
-#include <lk/trace.h>
 #include <lk/pow2.h>
 #include <string.h>
 #include <assert.h>
 #include <lib/cbuf.h>
 #include <kernel/event.h>
 #include <kernel/spinlock.h>
-
-#define LOCAL_TRACE 0
 
 #define INC_POINTER(cbuf, ptr, inc) \
     modpow2(((ptr) + (inc)), (cbuf)->len_pow2)
@@ -36,7 +26,7 @@ void cbuf_initialize_etc(cbuf_t *cbuf, size_t len, void *buf) {
     event_init(&cbuf->event, false, 0);
     spin_lock_init(&cbuf->lock);
 
-    LTRACEF("len %zd, len_pow2 %u\n", len, cbuf->len_pow2);
+    dprintf(DEBUG, "len %zd, len_pow2 %u\n", len, cbuf->len_pow2);
 }
 
 size_t cbuf_space_avail(cbuf_t *cbuf) {
@@ -51,7 +41,7 @@ size_t cbuf_space_used(cbuf_t *cbuf) {
 size_t cbuf_write(cbuf_t *cbuf, const void *_buf, size_t len, bool canreschedule) {
     const char *buf = (const char *)_buf;
 
-    LTRACEF("len %zd\n", len);
+    dprintf(DEBUG, "len %zd\n", len);
 
     DEBUG_ASSERT(cbuf);
     DEBUG_ASSERT(len < valpow2(cbuf->len_pow2));

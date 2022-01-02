@@ -1,16 +1,8 @@
-/*
- * Copyright (c) 2012 Google, Inc.
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
 #include <lk/debug.h>
 #include <lk/err.h>
 #include <lk/compiler.h>
 #include <lk/console_cmd.h>
 #include <platform.h>
-#include <platform/debug.h>
 #include <kernel/thread.h>
 #include <stdio.h>
 

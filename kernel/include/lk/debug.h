@@ -1,7 +1,6 @@
 #pragma once
 
 #include <lk/compiler.h>
-#include <platform/debug.h>
 #include <stddef.h>
 #include <stdio.h>
 

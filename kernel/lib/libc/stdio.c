@@ -4,7 +4,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <sys/types.h>
-#include <platform/debug.h>
 #include <kernel/spinlock.h>
 
 size_t platform_write(const char *str, size_t len);
@@ -97,7 +96,7 @@ int printf(const char *fmt, ...) {
     err = vfprintf(stdout, fmt, ap);
     va_end(ap);
 
-	spin_unlock_restore(&printf_lock, &state, SPIN_LOCK_FLAG_INTERRUPTS);
+	spin_unlock_restore(&printf_lock, state, SPIN_LOCK_FLAG_INTERRUPTS);
 
     return err;
 }

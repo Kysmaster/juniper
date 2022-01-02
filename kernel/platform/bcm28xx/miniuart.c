@@ -5,11 +5,10 @@
 #include <kernel/thread.h>
 #include <lib/cbuf.h>
 #include <platform/bcm28xx.h>
-#include <platform/debug.h>
+#include <dev/uart.h>
 #include <platform/interrupts.h>
 #include <lk/reg.h>
 #include <stdio.h>
-#include <lk/trace.h>
 #include <kernel/spinlock.h>
 
 #define RXBUF_SIZE 16

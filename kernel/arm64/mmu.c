@@ -1,11 +1,3 @@
-/*
- * Copyright (c) 2014 Google Inc. All rights reserved
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 #include <arch/arm64/mmu.h>
 #include <assert.h>
 #include <lk/debug.h>

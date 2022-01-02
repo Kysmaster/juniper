@@ -1,11 +1,3 @@
-/*
- * Copyright (c) 2008-2015 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 #include <ctype.h>
 #include <lk/debug.h>
 #include <stdlib.h>
@@ -15,8 +7,8 @@
 #include <lk/list.h>
 #include <arch/ops.h>
 #include <platform.h>
-#include <platform/debug.h>
 #include <kernel/spinlock.h>
+#include <dev/uart.h>
 
 void spin(uint32_t usecs) {
     lk_bigtime_t start = current_time_hires();
@@ -59,7 +51,7 @@ static int __panic_stdio_fgetc(void *ctx) {
     char c;
     int err;
 
-    err = platform_pgetc(&c, false);
+    err = platform_dgetc(&c, false);
     if (err < 0)
         return err;
     return (unsigned char)c;
@@ -69,7 +61,7 @@ static ssize_t __panic_stdio_read(io_handle_t *io, char *s, size_t len) {
     if (len == 0)
         return 0;
 
-    int err = platform_pgetc(s, false);
+    int err = platform_dgetc(s, false);
     if (err < 0)
         return err;
 
@@ -78,7 +70,7 @@ static ssize_t __panic_stdio_read(io_handle_t *io, char *s, size_t len) {
 
 static ssize_t __panic_stdio_write(io_handle_t *io, const char *s, size_t len) {
     for (size_t i = 0; i < len; i++) {
-        platform_pputc(s[i]);
+        platform_dputc(s[i]);
     }
     return len;
 }

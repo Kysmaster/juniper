@@ -1,12 +1,4 @@
-/*
- * Copyright (c) 2008-2015 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
 #include <lib/io.h>
-
 #include <lk/err.h>
 #include <ctype.h>
 #include <lk/debug.h>
@@ -16,8 +8,8 @@
 #include <lib/cbuf.h>
 #include <arch/ops.h>
 #include <platform.h>
-#include <platform/debug.h>
 #include <kernel/thread.h>
+#include <dev/uart.h>
 
 /* routines for dealing with main console io */
 

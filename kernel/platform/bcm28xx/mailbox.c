@@ -1,24 +1,13 @@
-/*
- * Copyright (c) 2017 Eric Holland
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 #include <lk/reg.h>
 #include <lk/err.h>
 #include <lk/debug.h>
-#include <lk/trace.h>
-
 #include <arch.h>
 #include <platform.h>
 #include <arch/ops.h>
 #include <kernel/vm.h>
 #include <dev/display.h>
-
 #include <platform/bcm28xx.h>
 #include <platform/mailbox.h>
-
 
 static volatile uint32_t *mailbox_regs = (uint32_t *)ARM0_MAILBOX_BASE;
 static fb_mbox_t fb_desc __ALIGNED(16);

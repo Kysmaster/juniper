@@ -20,3 +20,6 @@ int uart_pgetc(int port);
 size_t uart_write(io_handle_t *io, const char *str, size_t len);
 size_t uart_read(io_handle_t *io, const char *str, size_t len);
 
+void platform_dputc(char c);
+int platform_dgetc(char *c, bool wait);
+

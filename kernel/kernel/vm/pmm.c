@@ -1,25 +1,15 @@
-/*
- * Copyright (c) 2014 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
+#include <kernel/debug.h>
 #include <kernel/vm.h>
-
 #include <assert.h>
 #include <kernel/mutex.h>
 #include <lk/console_cmd.h>
 #include <lk/err.h>
 #include <lk/list.h>
 #include <lk/pow2.h>
-#include <lk/trace.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "vm_priv.h"
-
-#define LOCAL_TRACE 0
 
 static struct list_node arena_list = LIST_INITIAL_VALUE(arena_list);
 static mutex_t lock = MUTEX_INITIAL_VALUE(lock);
@@ -60,7 +50,7 @@ vm_page_t *paddr_to_vm_page(paddr_t addr) {
 }
 
 status_t pmm_add_arena(pmm_arena_t *arena) {
-    LTRACEF("arena %p name '%s' base 0x%lx size 0x%zx\n", arena, arena->name, arena->base, arena->size);
+    dprintf(DEBUG, "arena %p name '%s' base 0x%lx size 0x%zx\n", arena, arena->name, arena->base, arena->size);
 
     DEBUG_ASSERT(IS_PAGE_ALIGNED(arena->base));
     DEBUG_ASSERT(IS_PAGE_ALIGNED(arena->size));
@@ -104,7 +94,7 @@ done_add:
 }
 
 size_t pmm_alloc_pages(uint32_t count, struct list_node *list) {
-    LTRACEF("count %u\n", count);
+    dprintf(DEBUG, "count %u\n", count);
 
     /* list must be initialized prior to calling this */
     DEBUG_ASSERT(list);
@@ -151,7 +141,7 @@ vm_page_t *pmm_alloc_page(void) {
 }
 
 size_t pmm_alloc_range(paddr_t address, uint32_t count, struct list_node *list) {
-    LTRACEF("address 0x%lx, count %u\n", address, count);
+    dprintf(DEBUG, "address 0x%lx, count %u\n", address, count);
 
     DEBUG_ASSERT(list);
 
@@ -197,7 +187,7 @@ size_t pmm_alloc_range(paddr_t address, uint32_t count, struct list_node *list) 
 }
 
 size_t pmm_free(struct list_node *list) {
-    LTRACEF("list %p\n", list);
+    dprintf(DEBUG, "list %p\n", list);
 
     DEBUG_ASSERT(list);
 
@@ -239,7 +229,7 @@ size_t pmm_free_page(vm_page_t *page) {
 
 /* physically allocate a run from arenas marked as KMAP */
 void *pmm_alloc_kpages(uint32_t count, struct list_node *list) {
-    LTRACEF("count %u\n", count);
+    dprintf(DEBUG, "count %u\n", count);
 
     /* fast path for single page */
     if (count == 1) {
@@ -260,7 +250,7 @@ void *pmm_alloc_kpages(uint32_t count, struct list_node *list) {
 }
 
 size_t pmm_free_kpages(void *_ptr, uint32_t count) {
-    LTRACEF("ptr %p, count %u\n", _ptr, count);
+    dprintf(DEBUG, "ptr %p, count %u\n", _ptr, count);
 
     uint8_t *ptr = (uint8_t *)_ptr;
 
@@ -281,7 +271,7 @@ size_t pmm_free_kpages(void *_ptr, uint32_t count) {
 }
 
 size_t pmm_alloc_contiguous(uint32_t count, uint8_t alignment_log2, paddr_t *pa, struct list_node *list) {
-    LTRACEF("count %u, align %u\n", count, alignment_log2);
+    dprintf(DEBUG, "count %u, align %u\n", count, alignment_log2);
 
     if (count == 0)
         return 0;
@@ -305,8 +295,8 @@ size_t pmm_alloc_contiguous(uint32_t count, uint8_t alignment_log2, paddr_t *pa,
 
             uint32_t aligned_offset = (rounded_base - a->base) / PAGE_SIZE;
             uint32_t start = aligned_offset;
-            LTRACEF("starting search at aligned offset %u\n", start);
-            LTRACEF("arena base 0x%lx size %zu\n", a->base, a->size);
+            dprintf(DEBUG, "starting search at aligned offset %u\n", start);
+            dprintf(DEBUG, "arena base 0x%lx size %zu\n", a->base, a->size);
 
 retry:
             /* search while we're still within the arena and have a chance of finding a slot
@@ -326,7 +316,7 @@ retry:
                 }
 
                 /* we found a run */
-                LTRACEF("found run from pn %u to %u\n", start, start + count);
+                dprintf(DEBUG, "found run from pn %u to %u\n", start, start + count);
 
                 /* remove the pages from the run out of the free list */
                 for (uint32_t i = start; i < start + count; i++) {
@@ -354,7 +344,7 @@ retry:
 
     mutex_release(&lock);
 
-    LTRACEF("couldn't find run\n");
+    dprintf(ERROR, "couldn't find run\n");
     return 0;
 }
 

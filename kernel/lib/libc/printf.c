@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
-#include <platform/debug.h>
+#include <dev/uart.h>
 
 #if WITH_NO_FP
 #define FLOAT_PRINTF 0

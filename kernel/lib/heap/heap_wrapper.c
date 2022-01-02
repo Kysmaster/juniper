@@ -1,13 +1,4 @@
-/*
- * Copyright (c) 2008-2015 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
 #include <lib/heap.h>
-
-#include <lk/trace.h>
 #include <lk/debug.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -17,8 +8,6 @@
 #include <kernel/spinlock.h>
 #include <lk/console_cmd.h>
 #include <lib/page_alloc.h>
-
-#define LOCAL_TRACE 0
 
 /* heap tracing */
 #if LK_DEBUGLEVEL > 0
@@ -31,7 +20,6 @@ static bool heap_trace = false;
 struct list_node delayed_free_list = LIST_INITIAL_VALUE(delayed_free_list);
 spin_lock_t delayed_free_lock = SPIN_LOCK_INITIAL_VALUE;
 
-#if WITH_LIB_HEAP_MINIHEAP
 /* miniheap implementation */
 #include <lib/miniheap.h>
 
@@ -47,74 +35,11 @@ static inline void *HEAP_CALLOC(size_t n, size_t s) {
         memset(ptr, 0, realsize);
     return ptr;
 }
-static inline void HEAP_INIT(void) {
-    /* start the heap off with some spare memory in the page allocator */
-    size_t len;
-    void *ptr = page_first_alloc(&len);
-    miniheap_init(ptr, len);
-}
+
 #define HEAP_DUMP miniheap_dump
 #define HEAP_TRIM miniheap_trim
 
 /* end miniheap implementation */
-#elif WITH_LIB_HEAP_CMPCTMALLOC
-/* cmpctmalloc implementation */
-#include <lib/cmpctmalloc.h>
-
-#define HEAP_MEMALIGN(boundary, s) cmpct_memalign(s, boundary)
-#define HEAP_MALLOC cmpct_alloc
-#define HEAP_REALLOC cmpct_realloc
-#define HEAP_FREE cmpct_free
-#define HEAP_INIT cmpct_init
-#define HEAP_DUMP cmpct_dump
-#define HEAP_TRIM cmpct_trim
-static inline void *HEAP_CALLOC(size_t n, size_t s) {
-    size_t realsize = n * s;
-
-    void *ptr = cmpct_alloc(realsize);
-    if (likely(ptr))
-        memset(ptr, 0, realsize);
-    return ptr;
-}
-
-/* end cmpctmalloc implementation */
-#elif WITH_LIB_HEAP_DLMALLOC
-/* dlmalloc implementation */
-#include <lib/dlmalloc.h>
-
-#define HEAP_MALLOC(s) dlmalloc(s)
-#define HEAP_CALLOC(n, s) dlcalloc(n, s)
-#define HEAP_MEMALIGN(b, s) dlmemalign(b, s)
-#define HEAP_REALLOC(p, s) dlrealloc(p, s)
-#define HEAP_FREE(p) dlfree(p)
-static inline void HEAP_INIT(void) {}
-
-static inline void HEAP_DUMP(void) {
-    struct mallinfo minfo = dlmallinfo();
-
-    printf("\tmallinfo (dlmalloc):\n");
-    printf("\t\tarena space 0x%zx\n", minfo.arena);
-    printf("\t\tfree chunks 0x%zx\n", minfo.ordblks);
-    printf("\t\tspace in mapped regions 0x%zx\n", minfo.hblkhd);
-    printf("\t\tmax total allocated 0x%zx\n", minfo.usmblks);
-    printf("\t\ttotal allocated 0x%zx\n", minfo.uordblks);
-    printf("\t\tfree 0x%zx\n", minfo.fordblks);
-    printf("\t\treleasable space 0x%zx\n", minfo.keepcost);
-
-    printf("\theap block list:\n");
-    void dump_callback(void *start, void *end, size_t used_bytes, void *arg) {
-        printf("\t\tstart %p end %p used_bytes %zu\n", start, end, used_bytes);
-    }
-
-    dlmalloc_inspect_all(&dump_callback, NULL);
-}
-
-static inline void HEAP_TRIM(void) { dlmalloc_trim(0); }
-
-/* end dlmalloc implementation */
-#else
-#error need to select valid heap implementation or provide wrapper
-#endif
 
 static void heap_free_delayed_list(void) {
     struct list_node list;
@@ -131,13 +56,16 @@ static void heap_free_delayed_list(void) {
     spin_unlock_irqrestore(&delayed_free_lock, state);
 
     while ((node = list_remove_head(&list))) {
-        LTRACEF("freeing node %p\n", node);
+        dprintf(DEBUG, "freeing node %p\n", node);
         HEAP_FREE(node);
     }
 }
 
 void heap_init(void) {
-    HEAP_INIT();
+    /* start the heap off with some spare memory in the page allocator */
+    size_t len;
+    void *ptr = page_first_alloc(&len);
+    miniheap_init(ptr, len);
 }
 
 void heap_trim(void) {
@@ -150,7 +78,7 @@ void heap_trim(void) {
 }
 
 void *malloc(size_t size) {
-    LTRACEF("size %zd\n", size);
+    dprintf(DEBUG, "size %zd\n", size);
 
     // deal with the pending free list
     if (unlikely(!list_is_empty(&delayed_free_list))) {
@@ -164,7 +92,7 @@ void *malloc(size_t size) {
 }
 
 void *memalign(size_t boundary, size_t size) {
-    LTRACEF("boundary %zu, size %zd\n", boundary, size);
+    dprintf(DEBUG, "boundary %zu, size %zd\n", boundary, size);
 
     // deal with the pending free list
     if (unlikely(!list_is_empty(&delayed_free_list))) {
@@ -178,7 +106,7 @@ void *memalign(size_t boundary, size_t size) {
 }
 
 void *calloc(size_t count, size_t size) {
-    LTRACEF("count %zu, size %zd\n", count, size);
+    dprintf(DEBUG, "count %zu, size %zd\n", count, size);
 
     // deal with the pending free list
     if (unlikely(!list_is_empty(&delayed_free_list))) {
@@ -192,7 +120,7 @@ void *calloc(size_t count, size_t size) {
 }
 
 void *realloc(void *ptr, size_t size) {
-    LTRACEF("ptr %p, size %zd\n", ptr, size);
+    dprintf(DEBUG, "ptr %p, size %zd\n", ptr, size);
 
     // deal with the pending free list
     if (unlikely(!list_is_empty(&delayed_free_list))) {
@@ -206,7 +134,7 @@ void *realloc(void *ptr, size_t size) {
 }
 
 void free(void *ptr) {
-    LTRACEF("ptr %p\n", ptr);
+    dprintf(DEBUG, "ptr %p\n", ptr);
     if (heap_trace)
         printf("caller %p free %p\n", __GET_CALLER(), ptr);
 
@@ -215,7 +143,7 @@ void free(void *ptr) {
 
 /* critical section time delayed free */
 void heap_delayed_free(void *ptr) {
-    LTRACEF("ptr %p\n", ptr);
+    dprintf(DEBUG, "ptr %p\n", ptr);
 
     /* throw down a structure on the free block */
     /* XXX assumes the free block is large enough to hold a list node */

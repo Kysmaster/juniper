@@ -1,17 +1,7 @@
-/*
- * Copyright (c) 2015 Google, Inc. All rights reserved
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 #include <lib/page_alloc.h>
-
 #include <lk/debug.h>
 #include <assert.h>
 #include <string.h>
-#include <lk/trace.h>
 #include <lk/console_cmd.h>
 #include <kernel/vm.h>
 
@@ -20,7 +10,6 @@
  * other user that wants pages of memory but doesn't want to use LK
  * specific apis.
  */
-#define LOCAL_TRACE 0
 
 #if WITH_STATIC_HEAP
 

@@ -1,11 +1,3 @@
-/*
- * Copyright (c) 2008-2010, 2015 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 /**
  * @defgroup graphics Graphics
  *
@@ -18,7 +10,6 @@
  */
 
 #include <lk/debug.h>
-#include <lk/trace.h>
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -27,8 +18,6 @@
 #include <lib/gfx.h>
 #include <dev/display.h>
 #include <lk/console_cmd.h>
-
-#define LOCAL_TRACE 0
 
 // Convert a 32bit ARGB image to its respective gamma corrected grayscale value.
 static uint32_t ARGB8888_to_Luma(uint32_t in) {
@@ -110,7 +99,7 @@ void gfx_copyrect(gfx_surface *surface, uint32_t x, uint32_t y, uint32_t width, 
  * @brief  Fill a rectangle on the screen with a constant color.
  */
 void gfx_fillrect(gfx_surface *surface, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {
-    LTRACEF("surface %p, x %u y %u w %u h %u c %u\n", surface, x, y, width, height, color);
+    dprintf(DEBUG, "surface %p, x %u y %u w %u h %u c %u\n", surface, x, y, width, height, color);
     // trim
     if (unlikely(x >= surface->width))
         return;
@@ -408,7 +397,7 @@ static uint32_t alpha32_add_ignore_destalpha(uint32_t dest, uint32_t src) {
 void gfx_surface_blend(struct gfx_surface *target, struct gfx_surface *source, uint32_t destx, uint32_t desty) {
     DEBUG_ASSERT(target->format == source->format);
 
-    LTRACEF("target %p, source %p, destx %u, desty %u\n", target, source, destx, desty);
+    dprintf(DEBUG, "target %p, source %p, destx %u, desty %u\n", target, source, destx, desty);
 
     if (destx >= target->width)
         return;
@@ -431,7 +420,7 @@ void gfx_surface_blend(struct gfx_surface *target, struct gfx_surface *source, u
         uint32_t dest_stride_diff = target->stride - width;
         uint32_t source_stride_diff = source->stride - width;
 
-        LTRACEF("w %u h %u dstride %u sstride %u\n", width, height, dest_stride_diff, source_stride_diff);
+        dprintf(DEBUG, "w %u h %u dstride %u sstride %u\n", width, height, dest_stride_diff, source_stride_diff);
 
         uint32_t i, j;
         for (i=0; i < height; i++) {
@@ -450,7 +439,7 @@ void gfx_surface_blend(struct gfx_surface *target, struct gfx_surface *source, u
         uint32_t dest_stride_diff = target->stride - width;
         uint32_t source_stride_diff = source->stride - width;
 
-        LTRACEF("w %u h %u dstride %u sstride %u\n", width, height, dest_stride_diff, source_stride_diff);
+        dprintf(DEBUG, "w %u h %u dstride %u sstride %u\n", width, height, dest_stride_diff, source_stride_diff);
 
         uint32_t i, j;
         for (i=0; i < height; i++) {
@@ -470,7 +459,7 @@ void gfx_surface_blend(struct gfx_surface *target, struct gfx_surface *source, u
         uint32_t dest_stride_diff = target->stride - width;
         uint32_t source_stride_diff = source->stride - width;
 
-        LTRACEF("w %u h %u dstride %u sstride %u\n", width, height, dest_stride_diff, source_stride_diff);
+        dprintf(DEBUG, "w %u h %u dstride %u sstride %u\n", width, height, dest_stride_diff, source_stride_diff);
 
         uint32_t i, j;
         for (i=0; i < height; i++) {
@@ -489,7 +478,7 @@ void gfx_surface_blend(struct gfx_surface *target, struct gfx_surface *source, u
         uint32_t dest_stride_diff = target->stride - width;
         uint32_t source_stride_diff = source->stride - width;
 
-        LTRACEF("w %u h %u dstride %u sstride %u\n", width, height, dest_stride_diff, source_stride_diff);
+        dprintf(DEBUG, "w %u h %u dstride %u sstride %u\n", width, height, dest_stride_diff, source_stride_diff);
 
         uint32_t i, j;
         for (i=0; i < height; i++) {

@@ -1,13 +1,4 @@
-/*
- * Copyright (c) 2008-2009,2012-2015 Travis Geiselbrecht
- * Copyright (c) 2009 Corey Tabaka
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
 #include <lk/debug.h>
-#include <lk/trace.h>
 #include <assert.h>
 #include <lk/err.h>
 #include <lk/list.h>
@@ -19,8 +10,6 @@
 #include <lib/miniheap.h>
 #include <lib/heap.h>
 #include <lib/page_alloc.h>
-
-#define LOCAL_TRACE 1
 
 #define DEBUG_HEAP 0
 #define ALLOC_FILL 0x99
@@ -91,7 +80,7 @@ void miniheap_dump(void) {
 static struct free_heap_chunk *heap_insert_free_chunk(struct free_heap_chunk *chunk) {
     vaddr_t chunk_end = (vaddr_t)chunk + chunk->len;
 
-    LTRACEF("chunk ptr %p, size 0x%zx\n", chunk, chunk->len);
+    dprintf(DEBUG, "chunk ptr %p, size 0x%zx\n", chunk, chunk->len);
 
     struct free_heap_chunk *next_chunk;
     struct free_heap_chunk *last_chunk;
@@ -168,7 +157,7 @@ void *miniheap_alloc(size_t size, unsigned int alignment) {
     size_t original_size = size;
 #endif
 
-    LTRACEF("size %zd, align %d\n", size, alignment);
+    dprintf(DEBUG, "size %zd, align %d\n", size, alignment);
 
     // alignment must be power of 2
     if (alignment & (alignment - 1))
@@ -280,7 +269,7 @@ retry:
         }
     }
 
-    LTRACEF("returning ptr %p\n", ptr);
+    dprintf(DEBUG, "returning ptr %p\n", ptr);
 
     return ptr;
 }
@@ -309,7 +298,7 @@ void miniheap_free(void *ptr) {
     if (!ptr)
         return;
 
-    LTRACEF("ptr %p\n", ptr);
+    dprintf(DEBUG, "ptr %p\n", ptr);
 
     // check for the old allocation structure
     struct alloc_struct_begin *as = (struct alloc_struct_begin *)ptr;
@@ -332,7 +321,7 @@ void miniheap_free(void *ptr) {
     }
 #endif
 
-    LTRACEF("allocation was %zd bytes long at ptr %p\n", as->size, as->ptr);
+    dprintf(DEBUG, "allocation was %zd bytes long at ptr %p\n", as->size, as->ptr);
 
     // looks good, create a free chunk and add it to the pool
     heap_insert_free_chunk(heap_create_free_chunk(as->ptr, as->size, true));
@@ -343,15 +332,13 @@ void miniheap_free(void *ptr) {
 }
 
 void miniheap_trim(void) {
-    LTRACE_ENTRY;
-
     mutex_acquire(&theheap.lock);
 
     // walk through the list, finding free chunks that can be returned to the page allocator
     struct free_heap_chunk *chunk;
     struct free_heap_chunk *next_chunk;
     list_for_every_entry_safe(&theheap.free_list, chunk, next_chunk, struct free_heap_chunk, node) {
-        LTRACEF("looking at chunk %p, len 0x%zx\n", chunk, chunk->len);
+        dprintf(DEBUG, "looking at chunk %p, len 0x%zx\n", chunk, chunk->len);
 
         uintptr_t start = (uintptr_t)chunk;
         uintptr_t end = start + chunk->len;
@@ -363,18 +350,18 @@ void miniheap_trim(void) {
         DEBUG_ASSERT(end_page <= end);
         DEBUG_ASSERT(start_page >= start);
 
-        LTRACEF("start page 0x%lx, end page 0x%lx\n", start_page, end_page);
+        dprintf(DEBUG, "start page 0x%lx, end page 0x%lx\n", start_page, end_page);
 
 retry:
         // see if the free block encompasses at least one page
         if (unlikely(end_page > start_page)) {
-            LTRACEF("could trim: start 0x%lx, end 0x%lx\n", start_page, end_page);
+            dprintf(DEBUG, "could trim: start 0x%lx, end 0x%lx\n", start_page, end_page);
 
             // cases where the start of the block is already page aligned
             if (start_page == start) {
                 // look for special case, we're going to completely remove the chunk
                 if (end_page == end) {
-                    LTRACEF("special case, free chunk completely covers page(s)\n");
+                    dprintf(DEBUG, "special case, free chunk completely covers page(s)\n");
                     list_delete(&chunk->node);
                     goto free_chunk;
                 }
@@ -382,7 +369,7 @@ retry:
                 // start of block is not page aligned,
                 // will there be enough space before the block if we trim?
                 if (start_page - start < sizeof(struct free_heap_chunk)) {
-                    LTRACEF("not enough space for free chunk before\n");
+                    dprintf(DEBUG, "not enough space for free chunk before\n");
                     start_page += PAGE_SIZE;
                     goto retry;
                 }
@@ -391,11 +378,11 @@ retry:
             // do we need to split the free block and create a new block afterwards?
             if (end_page < end) {
                 size_t new_chunk_size = end - end_page;
-                LTRACEF("will have to split, new chunk will be 0x%zx bytes long\n", new_chunk_size);
+                dprintf(DEBUG, "will have to split, new chunk will be 0x%zx bytes long\n", new_chunk_size);
 
                 // if there's not enough space afterwards for a free chunk, we can't free the last page
                 if (new_chunk_size < sizeof(struct free_heap_chunk)) {
-                    LTRACEF("not enough space for free chunk afterwards\n");
+                    dprintf(ERROR, "not enough space for free chunk afterwards\n");
                     end_page -= PAGE_SIZE;
                     goto retry;
                 }
@@ -413,7 +400,7 @@ retry:
 
             // check again to see if we are now completely covering a block
             if (start_page == start && end_page == end) {
-                LTRACEF("special case, after splitting off new chunk, free chunk completely covers page(s)\n");
+                dprintf(DEBUG, "special case, after splitting off new chunk, free chunk completely covers page(s)\n");
                 list_delete(&chunk->node);
                 goto free_chunk;
             }
@@ -423,7 +410,7 @@ retry:
 
 free_chunk:
             // return it to the allocator
-            LTRACEF("returning %p size 0x%lx to the page allocator\n", (void *)start_page, end_page - start_page);
+            dprintf(DEBUG, "returning %p size 0x%lx to the page allocator\n", (void *)start_page, end_page - start_page);
             page_free((void *)start_page, (end_page - start_page) / PAGE_SIZE);
 
             // tweak accounting
@@ -461,11 +448,11 @@ static ssize_t heap_grow(size_t size) {
     size = ROUNDUP(size, PAGE_SIZE);
     void *ptr = page_alloc(size / PAGE_SIZE, PAGE_ALLOC_ANY_ARENA);
     if (!ptr) {
-        TRACEF("failed to grow kernel heap by 0x%zx bytes\n", size);
+        dprintf(ERROR, "failed to grow kernel heap by 0x%zx bytes\n", size);
         return ERR_NO_MEMORY;
     }
 
-    LTRACEF("growing heap by 0x%zx bytes, new ptr %p\n", size, ptr);
+    dprintf(DEBUG, "growing heap by 0x%zx bytes, new ptr %p\n", size, ptr);
 
     heap_insert_free_chunk(heap_create_free_chunk(ptr, size, true));
 
@@ -482,7 +469,7 @@ static ssize_t heap_grow(size_t size) {
 }
 
 void miniheap_init(void *ptr, size_t len) {
-    LTRACEF("ptr %p, len %zu\n", ptr, len);
+    dprintf(DEBUG, "ptr %p, len %zu\n", ptr, len);
 
     // create a mutex
     mutex_init(&theheap.lock);
@@ -499,7 +486,7 @@ void miniheap_init(void *ptr, size_t len) {
         len -= aligned_ptr - (uintptr_t)ptr;
         ptr = (void *)aligned_ptr;
 
-        LTRACEF("(aligned) ptr %p, len %zu\n", ptr, len);
+        dprintf(DEBUG, "(aligned) ptr %p, len %zu\n", ptr, len);
     }
 
     // set the heap range

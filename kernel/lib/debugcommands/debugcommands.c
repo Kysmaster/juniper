@@ -1,11 +1,3 @@
-/*
- * Copyright (c) 2008-2012 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 #include <ctype.h>
 #include <lk/debug.h>
 #include <stdlib.h>
@@ -14,12 +6,9 @@
 #include <string.h>
 #include <arch/ops.h>
 #include <platform.h>
-#include <platform/debug.h>
 #include <kernel/thread.h>
 #include <arch.h>
-
 #include <lk/console_cmd.h>
-
 #include <kernel/vm.h>
 
 static int cmd_display_mem(int argc, const console_cmd_args *argv);

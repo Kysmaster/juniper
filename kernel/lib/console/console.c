@@ -1,14 +1,5 @@
-/*
- * Copyright (c) 2008-2009 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
 #include <lib/console.h>
-
 #include <lk/debug.h>
-#include <lk/trace.h>
 #include <assert.h>
 #include <lk/err.h>
 #include <string.h>
@@ -20,8 +11,6 @@
 #if WITH_LIB_ENV
 #include <lib/env.h>
 #endif
-
-#define LOCAL_TRACE 0
 
 // Whether to enable command line history. Uses a nonzero
 // amount of memory, probably shouldn't enable for memory constrained devices.
@@ -39,8 +28,6 @@
 #define PANIC_LINE_LEN 32
 
 #define MAX_NUM_ARGS 16
-
-#define LOCAL_TRACE 0
 
 #define WHITESPACE " \t"
 
@@ -192,7 +179,7 @@ console_t *console_get_current(void) {
 console_t *console_set_current(console_t *con) {
     console_t *old = (console_t *)tls_get(TLS_ENTRY_CONSOLE);
     tls_set(TLS_ENTRY_CONSOLE, (uintptr_t)con); 
-    LTRACEF("setting new %p, old %p\n", con, old);
+    dprintf(DEBUG, "setting new %p, old %p\n", con, old);
 
     return old;
 }

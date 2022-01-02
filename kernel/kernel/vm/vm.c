@@ -1,10 +1,3 @@
-/*
- * Copyright (c) 2014 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
 #include <kernel/vm.h>
 #include <arch/mmu.h>
 #include <kernel/thread.h>
@@ -12,12 +5,9 @@
 #include <lk/debug.h>
 #include <lk/err.h>
 #include <lk/init.h>
-#include <lk/trace.h>
 #include <string.h>
 
 #include "vm_priv.h"
-
-#define LOCAL_TRACE 0
 
 extern int _start;
 extern int _end;
@@ -25,7 +15,7 @@ extern int _end;
 /* mark the physical pages backing a range of virtual as in use.
  * allocate the physical pages and throw them away */
 static void mark_pages_in_use(vaddr_t va, size_t len) {
-    LTRACEF("va 0x%lx, len 0x%zx\n", va, len);
+    dprintf(DEBUG, "va 0x%lx, len 0x%zx\n", va, len);
 
     struct list_node list;
     list_initialize(&list);
@@ -34,7 +24,7 @@ static void mark_pages_in_use(vaddr_t va, size_t len) {
     len = PAGE_ALIGN(len + (va & (PAGE_SIZE - 1)));
     va = ROUNDDOWN(va, PAGE_SIZE);
 
-    LTRACEF("aligned va 0x%lx, len 0x%zx\n", va, len);
+    dprintf(DEBUG, "aligned va 0x%lx, len 0x%zx\n", va, len);
 
     for (size_t offset = 0; offset < len; offset += PAGE_SIZE) {
         uint32_t flags;
@@ -42,7 +32,7 @@ static void mark_pages_in_use(vaddr_t va, size_t len) {
 
         status_t err = arch_mmu_query(&vmm_get_kernel_aspace()->arch_aspace, va + offset, &pa, &flags);
         if (err >= 0) {
-            //LTRACEF("va 0x%x, pa 0x%x, flags 0x%x, err %d\n", va + offset, pa, flags, err);
+            //dprintf(DEBUG, "va 0x%x, pa 0x%x, flags 0x%x, err %d\n", va + offset, pa, flags, err);
 
             /* alloate the range, throw the results away */
             pmm_alloc_range(pa, 1, &list);
@@ -53,26 +43,22 @@ static void mark_pages_in_use(vaddr_t va, size_t len) {
 }
 
 void vm_init_preheap(void) {
-    LTRACE_ENTRY;
-
     /* allow the vmm a shot at initializing some of its data structures */
     vmm_init_preheap();
 
     /* mark all of the kernel pages in use */
-    LTRACEF("marking all kernel pages as used\n");
+    dprintf(INFO, "marking all kernel pages as used\n");
     mark_pages_in_use((vaddr_t)&_start, ((uintptr_t)&_end - (uintptr_t)&_start));
 
     /* mark the physical pages used by the boot time allocator */
     if (boot_alloc_end != boot_alloc_start) {
-        LTRACEF("marking boot alloc used from 0x%lx to 0x%lx\n", boot_alloc_start, boot_alloc_end);
+        dprintf(INFO, "marking boot alloc used from 0x%lx to 0x%lx\n", boot_alloc_start, boot_alloc_end);
 
         mark_pages_in_use(boot_alloc_start, boot_alloc_end - boot_alloc_start);
     }
 }
 
 void vm_init_postheap(void) {
-    LTRACE_ENTRY;
-
     vmm_init();
 
     /* create vmm regions to cover what is already there from the initial mapping table */

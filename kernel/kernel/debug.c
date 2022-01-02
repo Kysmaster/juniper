@@ -62,6 +62,6 @@ int dprintf(uint8_t level, const char *fmt, ...) {
     err = vfprintf(&uart_out, fmt, ap);
     va_end(ap);
 
-	spin_unlock_restore(&debug_lock, &state, SPIN_LOCK_FLAG_INTERRUPTS);
+	spin_unlock_restore(&debug_lock, state, SPIN_LOCK_FLAG_INTERRUPTS);
     return err;
 }
