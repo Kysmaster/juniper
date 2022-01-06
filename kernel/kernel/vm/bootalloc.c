@@ -1,6 +1,5 @@
 #include <kernel/vm.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <sys/types.h>
 
 #include "vm_priv.h"

@@ -87,10 +87,10 @@ static status_t mailbox_get_framebuffer(fb_mbox_t *fb) {
 
 status_t init_framebuffer(void) {
 
-    fb_desc.phys_width = 800;
-    fb_desc.phys_height = 480;
-    fb_desc.virt_width = 800;
-    fb_desc.virt_height = 480;
+    fb_desc.phys_width = 1024;
+    fb_desc.phys_height = 768;
+    fb_desc.virt_width = 1024;
+    fb_desc.virt_height = 768;
     fb_desc.pitch = 0;
     fb_desc.depth = 32;
     fb_desc.virt_x_offs = 0;

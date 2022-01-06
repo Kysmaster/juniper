@@ -55,6 +55,9 @@ struct fp_32_64 cntpct_per_ms;
 struct fp_32_64 ms_per_cntpct;
 struct fp_32_64 us_per_cntpct;
 
+size_t uptime_sec = 0;
+size_t uptime_raw = 0;
+
 static uint64_t lk_time_to_cntpct(lk_time_t lk_time) {
     return u64_mul_u32_fp32_64(lk_time, cntpct_per_ms);
 }
@@ -108,6 +111,8 @@ static uint64_t read_cntpct(void) {
 static enum handler_return platform_tick(void *arg) {
     write_cntp_ctl(0);
     if (t_callback) {
+        uptime_raw = current_time();
+        uptime_sec = uptime_raw / 1000;
         return t_callback(arg, current_time());
     } else {
         return INT_NO_RESCHEDULE;

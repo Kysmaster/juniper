@@ -6,7 +6,6 @@
 #include <lk/err.h>
 #include <lk/list.h>
 #include <kernel/spinlock.h>
-#include <lk/console_cmd.h>
 #include <lib/page_alloc.h>
 
 /* heap tracing */
@@ -222,62 +221,3 @@ static void heap_test(void) {
     HEAP_DUMP();
 #endif
 }
-
-
-#if LK_DEBUGLEVEL > 1
-
-static int cmd_heap(int argc, const console_cmd_args *argv);
-
-STATIC_COMMAND_START
-STATIC_COMMAND("heap", "heap debug commands", &cmd_heap)
-STATIC_COMMAND_END(heap);
-
-static int cmd_heap(int argc, const console_cmd_args *argv) {
-    if (argc < 2) {
-notenoughargs:
-        printf("not enough arguments\n");
-usage:
-        printf("usage:\n");
-        printf("\t%s info\n", argv[0].str);
-        printf("\t%s trace\n", argv[0].str);
-        printf("\t%s trim\n", argv[0].str);
-        printf("\t%s alloc <size> [alignment]\n", argv[0].str);
-        printf("\t%s realloc <ptr> <size>\n", argv[0].str);
-        printf("\t%s free <address>\n", argv[0].str);
-        return -1;
-    }
-
-    if (strcmp(argv[1].str, "info") == 0) {
-        heap_dump();
-    } else if (strcmp(argv[1].str, "test") == 0) {
-        heap_test();
-    } else if (strcmp(argv[1].str, "trace") == 0) {
-        heap_trace = !heap_trace;
-        printf("heap trace is now %s\n", heap_trace ? "on" : "off");
-    } else if (strcmp(argv[1].str, "trim") == 0) {
-        heap_trim();
-    } else if (strcmp(argv[1].str, "alloc") == 0) {
-        if (argc < 3) goto notenoughargs;
-
-        void *ptr = memalign((argc >= 4) ? argv[3].u : 0, argv[2].u);
-        printf("memalign returns %p\n", ptr);
-    } else if (strcmp(argv[1].str, "realloc") == 0) {
-        if (argc < 4) goto notenoughargs;
-
-        void *ptr = realloc(argv[2].p, argv[3].u);
-        printf("realloc returns %p\n", ptr);
-    } else if (strcmp(argv[1].str, "free") == 0) {
-        if (argc < 2) goto notenoughargs;
-
-        free(argv[2].p);
-    } else {
-        printf("unrecognized command\n");
-        goto usage;
-    }
-
-    return 0;
-}
-
-#endif
-
-

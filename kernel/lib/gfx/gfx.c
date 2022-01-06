@@ -17,7 +17,6 @@
 #include <sys/types.h>
 #include <lib/gfx.h>
 #include <dev/display.h>
-#include <lk/console_cmd.h>
 
 // Convert a 32bit ARGB image to its respective gamma corrected grayscale value.
 static uint32_t ARGB8888_to_Luma(uint32_t in) {

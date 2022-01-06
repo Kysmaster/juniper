@@ -1,14 +1,9 @@
 #include <lk/debug.h>
 #include <lk/err.h>
 #include <lk/compiler.h>
-#include <lk/console_cmd.h>
 #include <platform.h>
 #include <kernel/thread.h>
 #include <stdio.h>
-
-#if WITH_LIB_CONSOLE
-#include <lib/console.h>
-#endif
 
 /*
  * default implementations of these routines, if the platform code
@@ -29,20 +24,3 @@ __WEAK void platform_halt(platform_halt_action suggested_action,
     for (;;)
         arch_idle();
 }
-
-static int cmd_reboot(int argc, const console_cmd_args *argv) {
-    platform_halt(HALT_ACTION_REBOOT, HALT_REASON_SW_RESET);
-    return 0;
-}
-
-static int cmd_poweroff(int argc, const console_cmd_args *argv) {
-    platform_halt(HALT_ACTION_SHUTDOWN, HALT_REASON_SW_RESET);
-    return 0;
-}
-
-STATIC_COMMAND_START
-#if LK_DEBUGLEVEL > 1
-STATIC_COMMAND("reboot", "soft reset", &cmd_reboot)
-STATIC_COMMAND("poweroff", "powerdown", &cmd_poweroff)
-#endif
-STATIC_COMMAND_END(platform_power);

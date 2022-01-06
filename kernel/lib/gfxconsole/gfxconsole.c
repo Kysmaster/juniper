@@ -54,6 +54,7 @@ static void gfxconsole_putc(char c) {
                 p_num = 0;
                 state = ESCAPE;
             } else {
+				gfx_fillrect(gfxconsole.surface, gfxconsole.x * FONT_X, gfxconsole.y * FONT_Y, FONT_X, FONT_Y, gfxconsole.back_color);
                 font_draw_char(gfxconsole.surface, c, gfxconsole.x * FONT_X, gfxconsole.y * FONT_Y, gfxconsole.front_color);
                 gfxconsole.x++;
             }
@@ -70,6 +71,7 @@ static void gfxconsole_putc(char c) {
             } else if (c == '[') {
                 // eat this character
             } else {
+				gfx_fillrect(gfxconsole.surface, gfxconsole.x * FONT_X, gfxconsole.y * FONT_Y, FONT_X, FONT_Y, gfxconsole.back_color);
                 font_draw_char(gfxconsole.surface, c, gfxconsole.x * FONT_X, gfxconsole.y * FONT_Y, gfxconsole.front_color);
                 gfxconsole.x++;
                 state = NORMAL;
@@ -151,6 +153,14 @@ void gfxconsole_start_on_display(void) {
     gfx_surface *s = gfx_create_surface_from_display(&fb);
     gfxconsole_start(s);
     started = true;
+}
+
+void gfxconsole_set_xy(uint32_t x, uint32_t y) {
+	//gfx_surface *s = gfx_create_surface_from_display(&fb);
+	
+	gfxconsole.x = x;
+	gfxconsole.y = y;
+	gfx_flush(gfxconsole.surface);
 }
 
 // TODO

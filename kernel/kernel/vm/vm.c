@@ -1,7 +1,6 @@
 #include <kernel/vm.h>
 #include <arch/mmu.h>
 #include <kernel/thread.h>
-#include <lk/console_cmd.h>
 #include <lk/debug.h>
 #include <lk/err.h>
 #include <lk/init.h>
@@ -113,73 +112,3 @@ vmm_aspace_t *vaddr_to_aspace(void *ptr) {
         return NULL;
     }
 }
-
-static int cmd_vm(int argc, const console_cmd_args *argv) {
-    if (argc < 2) {
-notenoughargs:
-        printf("not enough arguments\n");
-usage:
-        printf("usage:\n");
-        printf("%s phys2virt <address>\n", argv[0].str);
-        printf("%s virt2phys <address>\n", argv[0].str);
-        printf("%s map <phys> <virt> <count> <flags>\n", argv[0].str);
-        printf("%s unmap <virt> <count>\n", argv[0].str);
-        return ERR_GENERIC;
-    }
-
-    if (!strcmp(argv[1].str, "phys2virt")) {
-        if (argc < 3) goto notenoughargs;
-
-        void *ptr = paddr_to_kvaddr((paddr_t)argv[2].u);
-        printf("paddr_to_kvaddr returns %p\n", ptr);
-    } else if (!strcmp(argv[1].str, "virt2phys")) {
-        if (argc < 3) goto notenoughargs;
-
-        vmm_aspace_t *aspace = vaddr_to_aspace((void *)argv[2].u);
-        if (!aspace) {
-            printf("ERROR: outside of any address space\n");
-            return -1;
-        }
-
-        paddr_t pa;
-        uint32_t flags;
-        status_t err = arch_mmu_query(&aspace->arch_aspace, argv[2].u, &pa, &flags);
-        printf("arch_mmu_query returns %d\n", err);
-        if (err >= 0) {
-            printf("\tpa 0x%lx, flags 0x%x\n", pa, flags);
-        }
-    } else if (!strcmp(argv[1].str, "map")) {
-        if (argc < 6) goto notenoughargs;
-
-        vmm_aspace_t *aspace = vaddr_to_aspace((void *)argv[2].u);
-        if (!aspace) {
-            printf("ERROR: outside of any address space\n");
-            return -1;
-        }
-
-        int err = arch_mmu_map(&aspace->arch_aspace, argv[3].u, argv[2].u, argv[4].u, argv[5].u);
-        printf("arch_mmu_map returns %d\n", err);
-    } else if (!strcmp(argv[1].str, "unmap")) {
-        if (argc < 4) goto notenoughargs;
-
-        vmm_aspace_t *aspace = vaddr_to_aspace((void *)argv[2].u);
-        if (!aspace) {
-            printf("ERROR: outside of any address space\n");
-            return -1;
-        }
-
-        int err = arch_mmu_unmap(&aspace->arch_aspace, argv[2].u, argv[3].u);
-        printf("arch_mmu_unmap returns %d\n", err);
-    } else {
-        printf("unknown command\n");
-        goto usage;
-    }
-
-    return NO_ERROR;
-}
-
-STATIC_COMMAND_START
-#if LK_DEBUGLEVEL > 0
-STATIC_COMMAND("vm", "vm commands", &cmd_vm)
-#endif
-STATIC_COMMAND_END(vm);

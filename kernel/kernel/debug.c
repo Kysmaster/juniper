@@ -1,12 +1,7 @@
-#include <kernel/debug.h>
-#include <kernel/kernel_struct.h>
 #include <kernel/mp.h>
 #include <kernel/thread.h>
-#include <platform/time.h>
-#include <lk/console_cmd.h>
 #include <lk/debug.h>
 #include <lk/err.h>
-#include <platform.h>
 #include <stdio.h>
 #include <kernel/spinlock.h>
 #include <dev/uart.h>
@@ -33,7 +28,8 @@ int dprintf(uint8_t level, const char *fmt, ...) {
     va_list ap;
     int err;
 	char buffer[256];
-	lk_time_t timestamp = 0;
+	extern size_t uptime_raw;
+	lk_time_t timestamp = uptime_raw;
 	
 	switch (level) {
 	case 1:

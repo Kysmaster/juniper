@@ -1,11 +1,3 @@
-/*
- * Copyright (c) 2008-2015 Travis Geiselbrecht
- *
- * Use of this source code is governed by a MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT
- */
-
 /**
  * @file
  * @brief  Kernel threading
@@ -16,9 +8,7 @@
  * @{
  */
 #include <kernel/thread.h>
-
 #include <assert.h>
-#include <kernel/debug.h>
 #include <kernel/mp.h>
 #include <kernel/timer.h>
 #include <lib/heap.h>
@@ -509,9 +499,6 @@ void thread_resched(void) {
     }
 #endif
 
-    KEVLOG_THREAD_SWITCH(oldthread, newthread);
-
-
     if (thread_is_real_time_or_idle(newthread)) {
         if (!thread_is_real_time_or_idle(oldthread)) {
             /* if we're switching from a non real time to a real time, cancel
@@ -631,8 +618,6 @@ void thread_preempt(void) {
     if (!thread_is_idle(current_thread))
         THREAD_STATS_INC(preempts); /* only track when a meaningful preempt happens */
 #endif
-
-    KEVLOG_THREAD_PREEMPT(current_thread);
 
     THREAD_LOCK(state);
 

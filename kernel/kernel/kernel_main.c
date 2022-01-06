@@ -103,10 +103,20 @@ static int bootstrap2(void *arg) {
 	printf("booting secondary cpus!\n");
 	dprintf(INFO, "dprintf() test\n");
 	
-
 	printf("welocome to Juniper MP\n");
 
+	void gfxconsole_set_xy(uint32_t x, uint32_t y);
+	
 
+	extern size_t uptime_sec;
+	extern size_t uptime_raw;
+
+	for (;;) { 
+		
+			gfxconsole_set_xy(50, 0);
+			printf("uptime %09us", uptime_sec);	
+		
+	}
 
     return 0;
 }

@@ -80,7 +80,7 @@ void platform_early_init(void) {
 
             /* look for the 'memory' property */
             if (strcmp(name, "memory") == 0) {
-                printf("Found memory in fdt\n");
+                dprintf(INFO, "Found memory in fdt\n");
                 int lenp;
                 const void *prop_ptr = fdt_getprop(fdt, offset, "reg", &lenp);
                 if (prop_ptr && lenp == 0x10) {

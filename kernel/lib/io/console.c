@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <lk/list.h>
 #include <string.h>
-#include <lib/cbuf.h>
 #include <arch/ops.h>
 #include <platform.h>
 #include <kernel/thread.h>

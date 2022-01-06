@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 
-PATH := $(shell pwd)/host/toolchain/cross-root/bin:$(PATH)
+PATH := $(shell pwd)/host/cross-root/bin:$(PATH)
 PREFIX = $(shell pwd)/root
 
 KERNEL    := kernel
