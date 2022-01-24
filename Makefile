@@ -8,7 +8,7 @@ KERNELELF := $(KERNEL).elf
 
 QEMU    = qemu-system-aarch64
 
-QEMUFLAGS = -cpu cortex-a53 -machine raspi3 -kernel kernel/$(KERNELELF) -smp 4 -m 256M -serial null -serial stdio
+QEMUFLAGS = -cpu cortex-a53 -machine raspi3b -kernel kernel/$(KERNELELF) -smp 4 -m 1G -serial stdio
 
 all: 
 	#@# Build and install libc
@@ -21,7 +21,6 @@ all:
 
 clean:
 	$(MAKE) -C kernel clean
-	rm -rf ./root/usr/include/*
 	
 run: all
 	$(QEMU) $(QEMUFLAGS)

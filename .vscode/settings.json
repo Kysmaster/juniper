@@ -27,9 +27,35 @@
 		"aspace.h": "c",
 		"assert.h": "c",
 		"list.h": "c",
-		"page_alloc.h": "c"
+		"page_alloc.h": "c",
+		"mutex.h": "c",
+		"heap.h": "c",
+		"debug.h": "c",
+		"main.h": "c",
+		"io.h": "c",
+		"spinlock.h": "c",
+		"arm_generic.h": "c",
+		"timer.h": "c",
+		"fixed_point.h": "c",
+		"bcm28xx.h": "c",
+		"trace.h": "c",
+		"cksum.h": "c",
+		"vm_priv.h": "c",
+		"limits.h": "c",
+		"console.h": "c",
+		"pow2.h": "c",
+		"gfxconsole.h": "c",
+		"font.h": "c",
+		"bits.h": "c",
+		"init.h": "c",
+		"mp.h": "c",
+		"arch_ops.h": "c",
+		"mailbox.h": "c",
+		"string.h": "c",
+		"malloc.h": "c"
 	},
     "files.exclude": {
-        "**/host/": true
-    }
+		"**/*.o": true,
+		"**/host/": true
+	}
 }
