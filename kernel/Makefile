@@ -7,8 +7,8 @@ KERNEL    := kernel
 KERNELELF := $(KERNEL).elf
 KERNELHDD := $(KERNEL).hdd
 
-CFILES    := $(wildcard **/**/*.c) $(wildcard **/*.c) $(wildcard *.c)
-ASMFILES  := $(wildcard **/**/*.S) $(wildcard **/*.S) $(wildcard *.S)
+CFILES    := $(wildcard **/**/**/*.c) $(wildcard **/**/*.c) $(wildcard **/*.c) $(wildcard *.c)
+ASMFILES  := $(wildcard **/**/**/*.S) $(wildcard **/**/*.S) $(wildcard **/*.S) $(wildcard *.S)
 OBJ       := $(CFILES:.c=.o) $(ASMFILES:.S=.o)
 LIBS	  := 
 

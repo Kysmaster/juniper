@@ -3,11 +3,10 @@
         {
             "name": "juniper",
             "includePath": [
-                "${workspaceFolder}/**",
-                "${workspaceFolder}/kernel/include"
+                "${workspaceFolder}/include/**"
             ],
             "defines": [],
-            "compilerPath": "/home/kysmaster/juniper/host/cross-root/bin/aarch64-juniper-gcc",
+            "compilerPath": "${workspaceFolder}/host/cross-root/bin/aarch64-elf-gcc",
             "cStandard": "gnu17",
             "cppStandard": "gnu++17",
             "intelliSenseMode": "linux-gcc-arm64"

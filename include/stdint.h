@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2008-2014 Travis Geiselbrecht
+ *
+ * Use of this source code is governed by a MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT
+ */
 #pragma once
 
 #include <limits.h> // for ULONG_MAX
@@ -5,11 +12,11 @@
 typedef unsigned char      uint8_t;
 typedef unsigned short     uint16_t;
 typedef unsigned int       uint32_t;
-typedef unsigned long      uint64_t;
+typedef unsigned long long uint64_t;
 typedef signed char        int8_t;
 typedef short              int16_t;
 typedef int                int32_t;
-typedef long               int64_t;
+typedef long long          int64_t;
 
 #define INT8_MIN    CHAR_MIN
 #define INT16_MIN   SHRT_MIN
